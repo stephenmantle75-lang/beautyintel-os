@@ -1,0 +1,35 @@
+{
+  "name": "beautyintel-os",
+  "version": "0.9.0",
+  "description": "AI-powered financial analysis tool for beauty businesses in Ireland",
+  "private": true,
+  "homepage": "https://beautyintelos.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stephenmantle/beautyintel-os.git"
+  },
+  "scripts": {
+    "dev": "npx serve src -p 3000",
+    "lint": "npx htmlhint src/beautyintel.html",
+    "validate": "npx html-validate src/beautyintel.html",
+    "test": "echo \"No tests yet — see /tests directory\" && exit 0"
+  },
+  "keywords": [
+    "beauty",
+    "financial-analysis",
+    "ireland",
+    "solo-trader",
+    "fresha",
+    "csv-parser",
+    "ai",
+    "claude"
+  ],
+  "author": "Stephen Mantle",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "serve": "^14.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

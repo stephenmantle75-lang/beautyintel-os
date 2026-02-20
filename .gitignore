@@ -1,0 +1,46 @@
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Node (for future npm scripts)
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+*.key
+secrets.json
+
+# Build output
+dist/
+build/
+.cache/
+
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# OS temp files
+*.tmp
+*.bak
+*.orig
+
+# Logs
+*.log
+logs/

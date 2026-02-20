@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BeautyIntel OS — Financial Autopsy</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+/* ── TOKENS ── */
+:root {
+  --ink:     #0a0a0f;
+  --paper:   #f5f2ee;
+  --cream:   #faf8f5;
+  --gold:    #c9a84c;
+  --gold-lt: #e8d5a3;
+  --blush:   #e8b4b8;
+  --sage:    #8aaa8a;
+  --danger:  #e07070;
+  --success: #6fcf97;
+  --amber:   #f2a93b;
+  --muted:   #8a8580;
+  --border:  #e0dbd4;
+  --border-dark: rgba(245,242,238,0.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--paper);min-height:100vh;overflow-x:hidden;}
+
+/* ── PAGE SYSTEM ── */
+.page{display:none;}
+.page.active{display:block;}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;};}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+@keyframes barGrow{from{width:0%;}to{width:var(--w);}}
+.fade-up{opacity:0;animation:fadeUp 0.55s ease forwards;}
+.fade-up:nth-child(1){animation-delay:0.05s;}
+.fade-up:nth-child(2){animation-delay:0.12s;}
+.fade-up:nth-child(3){animation-delay:0.19s;}
+.fade-up:nth-child(4){animation-delay:0.26s;}
+.fade-up:nth-child(5){animation-delay:0.33s;}
+
+/* ═══════════════════════════════════════
+   UPLOAD PAGE
+═══════════════════════════════════════ */
+.hero{
+  position:relative;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:72px 24px 60px;background:var(--ink);overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 55% 45% at 12% 85%, rgba(201,168,76,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 55% at 88% 8%,  rgba(232,180,184,0.05) 0%, transparent 60%);
+}
+.hero-badge{
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;
+  color:var(--gold);text-transform:uppercase;margin-bottom:32px;
+  display:flex;align-items:center;gap:12px;
+  animation:fadeUp 0.5s ease 0.1s both;
+}
+.hero-badge::before,.hero-badge::after{content:'';width:28px;height:1px;background:var(--gold);opacity:0.35;}
+.hero h1{
+  font-family:'Playfair Display',serif;font-size:clamp(38px,6vw,80px);
+  font-weight:400;line-height:1.02;text-align:center;max-width:760px;
+  margin-bottom:22px;animation:fadeUp 0.55s ease 0.2s both;
+}
+.hero h1 em{font-style:italic;color:var(--gold);}
+.hero-sub{
+  font-size:17px;font-weight:300;color:rgba(245,242,238,0.5);
+  text-align:center;max-width:560px;line-height:1.65;margin-bottom:56px;
+  animation:fadeUp 0.55s ease 0.3s both;
+}
+
+/* ── Drop zones ── */
+.zones-wrap{
+  width:100%;max-width:960px;
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;
+  animation:fadeUp 0.55s ease 0.4s both;
+}
+.drop-zone{
+  border:1px solid rgba(245,242,238,0.13);border-radius:2px;
+  padding:40px 32px;text-align:center;cursor:pointer;
+  position:relative;transition:all 0.3s;background:rgba(245,242,238,0.02);
+}
+.drop-zone::before{
+  content:'';position:absolute;inset:5px;
+  border:1px dashed rgba(201,168,76,0.18);border-radius:1px;
+  pointer-events:none;transition:all 0.3s;
+}
+.drop-zone:hover,.drop-zone.drag-over{
+  border-color:rgba(201,168,76,0.45);background:rgba(201,168,76,0.035);
+}
+.drop-zone:hover::before,.drop-zone.drag-over::before{border-color:rgba(201,168,76,0.45);}
+.zone-icon{
+  width:56px;height:56px;margin:0 auto 20px;border-radius:50%;
+  border:1px solid rgba(201,168,76,0.25);background:rgba(201,168,76,0.05);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  transition:all 0.3s;
+}
+.drop-zone:hover .zone-icon{transform:scale(1.06);background:rgba(201,168,76,0.1);}
+.drop-zone h3{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;margin-bottom:10px;}
+.drop-zone p{font-size:13px;color:rgba(245,242,238,0.38);line-height:1.6;margin-bottom:24px;}
+.btn-choose{
+  background:var(--gold);color:var(--ink);border:none;
+  padding:11px 28px;font-family:'DM Sans',sans-serif;font-size:13px;
+  font-weight:600;letter-spacing:0.05em;text-transform:uppercase;
+  cursor:pointer;transition:all 0.2s;border-radius:2px;
+}
+.btn-choose:hover{background:var(--gold-lt);transform:translateY(-1px);}
+input[type="file"]{display:none;}
+.zone-file-name{
+  margin-top:14px;font-family:'DM Mono',monospace;font-size:11px;
+  color:rgba(201,168,76,0.7);letter-spacing:0.05em;min-height:18px;
+}
+.zone-queued{
+  margin-top:10px;padding:10px 14px;
+  background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2);
+  border-radius:2px;display:none;
+}
+.zone-queued.visible{display:flex;align-items:center;gap:10px;}
+.zone-queued-name{font-size:12px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.zone-queued-size{font-family:'DM Mono',monospace;font-size:10px;color:rgba(245,242,238,0.35);}
+.zone-remove{background:none;border:none;color:rgba(245,242,238,0.25);cursor:pointer;font-size:14px;padding:0 2px;transition:color 0.2s;line-height:1;}
+.zone-remove:hover{color:var(--danger);}
+
+/* ── Privacy note ── */
+.privacy-note{
+  margin-top:16px;width:100%;max-width:960px;text-align:center;
+  font-size:13px;color:rgba(245,242,238,0.3);
+  animation:fadeUp 0.55s ease 0.5s both;
+}
+.privacy-note .lock{color:var(--gold);margin-right:4px;}
+
+/* ── Run button ── */
+.btn-run{
+  margin-top:28px;width:100%;max-width:960px;
+  background:var(--gold);color:var(--ink);border:none;
+  padding:18px;font-family:'DM Sans',sans-serif;font-size:15px;
+  font-weight:600;letter-spacing:0.07em;text-transform:uppercase;
+  cursor:pointer;transition:all 0.2s;border-radius:2px;
+  display:none;animation:fadeUp 0.4s ease both;
+}
+.btn-run.visible{display:block;}
+.btn-run:hover{background:var(--gold-lt);transform:translateY(-1px);}
+
+/* ── API key row ── */
+.api-row{
+  margin-top:20px;width:100%;max-width:960px;
+  display:flex;align-items:center;gap:12px;
+  animation:fadeUp 0.55s ease 0.6s both;
+}
+.api-input{
+  flex:1;padding:11px 16px;
+  background:rgba(245,242,238,0.04);border:1px solid rgba(245,242,238,0.1);
+  border-radius:2px;color:var(--paper);font-family:'DM Mono',monospace;font-size:12px;
+  outline:none;transition:border-color 0.2s;
+}
+.api-input::placeholder{color:rgba(245,242,238,0.2);}
+.api-input:focus{border-color:var(--gold);}
+.api-badge{
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;
+  text-transform:uppercase;padding:6px 12px;border-radius:100px;
+  white-space:nowrap;flex-shrink:0;
+}
+.api-badge.on {color:var(--success);border:1px solid rgba(111,207,151,0.3);}
+.api-badge.off{color:rgba(245,242,238,0.3);border:1px solid rgba(245,242,238,0.1);}
+
+/* ═══════════════════════════════════════
+   PRIVACY CONFIRMATION SCREEN
+═══════════════════════════════════════ */
+.privacy-screen{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:60px 24px;background:var(--ink);
+}
+.privacy-card{
+  width:100%;max-width:600px;
+  border:1px solid rgba(201,168,76,0.2);padding:52px 48px;
+  background:rgba(245,242,238,0.02);
+  animation:fadeUp 0.5s ease both;
+}
+.privacy-lock-icon{font-size:32px;margin-bottom:24px;}
+.privacy-card h2{font-family:'Playfair Display',serif;font-size:32px;font-weight:400;margin-bottom:8px;}
+.privacy-card h2 em{font-style:italic;color:var(--gold);}
+.privacy-tx-count{
+  font-family:'Playfair Display',serif;font-size:52px;font-weight:700;
+  color:var(--gold);line-height:1;margin:24px 0 6px;
+}
+.privacy-tx-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.18em;color:rgba(245,242,238,0.3);text-transform:uppercase;margin-bottom:32px;}
+.privacy-two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;}
+.privacy-col-label{
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.18em;
+  text-transform:uppercase;margin-bottom:10px;
+}
+.privacy-col-label.removed{color:var(--danger);}
+.privacy-col-label.kept{color:var(--success);}
+.privacy-item{
+  font-size:13px;color:rgba(245,242,238,0.55);line-height:1.7;
+  padding-left:12px;border-left:2px solid rgba(245,242,238,0.08);
+}
+.privacy-item.removed-item{border-left-color:rgba(224,112,112,0.3);}
+.privacy-item.kept-item{border-left-color:rgba(111,207,151,0.3);}
+.privacy-pledge{
+  font-size:13px;color:rgba(245,242,238,0.35);line-height:1.65;
+  margin-bottom:28px;padding:16px;background:rgba(201,168,76,0.04);
+  border-left:2px solid rgba(201,168,76,0.25);
+}
+.btn-run-analysis{
+  width:100%;background:var(--gold);color:var(--ink);border:none;
+  padding:18px;font-family:'DM Sans',sans-serif;font-size:15px;
+  font-weight:600;letter-spacing:0.07em;text-transform:uppercase;
+  cursor:pointer;transition:all 0.2s;border-radius:2px;
+}
+.btn-run-analysis:hover{background:var(--gold-lt);transform:translateY(-1px);}
+.btn-back-upload{
+  background:none;border:none;color:rgba(245,242,238,0.25);
+  font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;
+  margin-top:14px;transition:color 0.2s;
+}
+.btn-back-upload:hover{color:rgba(245,242,238,0.5);}
+
+/* ═══════════════════════════════════════
+   LOADING SCREEN
+═══════════════════════════════════════ */
+.loading-screen{
+  display:none;position:fixed;inset:0;background:var(--ink);z-index:200;
+  flex-direction:column;align-items:center;justify-content:center;gap:20px;
+}
+.loading-screen.active{display:flex;}
+.loading-brand{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;color:var(--gold);text-transform:uppercase;margin-bottom:8px;}
+.loading-bar-track{width:300px;height:2px;background:rgba(245,242,238,0.08);border-radius:1px;overflow:hidden;}
+.loading-bar-fill{height:100%;background:var(--gold);width:0%;transition:width 0.5s ease;}
+.loading-steps{margin-top:12px;width:300px;}
+.load-step{
+  display:flex;align-items:center;gap:10px;padding:7px 0;
+  font-size:12px;color:rgba(245,242,238,0.18);transition:color 0.3s;
+}
+.load-step.active{color:var(--gold);}
+.load-step.done{color:rgba(111,207,151,0.65);}
+.load-step-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+
+/* ═══════════════════════════════════════
+   RESULTS PAGE SHELL
+═══════════════════════════════════════ */
+#page-results{background:var(--cream);color:var(--ink);min-height:100vh;}
+
+/* Sticky header */
+.res-header{
+  background:var(--ink);padding:0 52px;
+  display:flex;align-items:stretch;
+  border-bottom:1px solid rgba(201,168,76,0.15);
+  position:sticky;top:0;z-index:80;
+}
+.res-header-brand{
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;
+  color:var(--gold);text-transform:uppercase;
+  display:flex;align-items:center;padding-right:32px;
+  border-right:1px solid rgba(245,242,238,0.07);margin-right:0;
+}
+.res-metrics-strip{
+  flex:1;display:grid;grid-template-columns:repeat(4,1fr);
+}
+.res-metric{
+  padding:20px 28px;border-right:1px solid rgba(245,242,238,0.07);
+  display:flex;flex-direction:column;justify-content:center;
+}
+.res-metric:last-child{border-right:none;}
+.res-metric-label{
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.16em;
+  text-transform:uppercase;color:rgba(245,242,238,0.28);margin-bottom:6px;
+}
+.res-metric-value{
+  font-family:'Playfair Display',serif;font-size:26px;font-weight:700;
+  color:var(--paper);line-height:1;
+}
+.res-metric-value.danger{color:var(--danger);}
+.res-metric-value.success{color:var(--success);}
+.res-metric-value.gold{color:var(--gold);}
+.res-metric-value.amber{color:var(--amber);}
+.res-metric-sub{font-size:11px;color:rgba(245,242,238,0.25);margin-top:4px;font-weight:300;}
+.res-header-right{
+  display:flex;align-items:center;gap:12px;padding-left:24px;
+  border-left:1px solid rgba(245,242,238,0.07);
+}
+.privacy-badge{
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;
+  text-transform:uppercase;padding:5px 10px;border-radius:100px;
+  color:var(--gold);border:1px solid rgba(201,168,76,0.25);white-space:nowrap;
+}
+.ai-mode-badge{
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;
+  text-transform:uppercase;padding:5px 10px;border-radius:100px;
+  white-space:nowrap;
+}
+.ai-mode-badge.ai  {color:var(--success);border:1px solid rgba(111,207,151,0.25);}
+.ai-mode-badge.std {color:rgba(245,242,238,0.3);border:1px solid rgba(245,242,238,0.1);}
+.btn-reset{
+  background:none;border:1px solid rgba(245,242,238,0.1);
+  color:rgba(245,242,238,0.35);font-family:'DM Sans',sans-serif;
+  font-size:11px;font-weight:500;padding:6px 12px;border-radius:2px;
+  cursor:pointer;transition:all 0.2s;white-space:nowrap;
+}
+.btn-reset:hover{color:var(--paper);border-color:rgba(245,242,238,0.28);}
+
+/* Tab nav */
+.res-tabs{
+  background:var(--ink);padding:0 52px;display:flex;
+  border-bottom:1px solid rgba(245,242,238,0.07);
+}
+.res-tab{
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  color:rgba(245,242,238,0.32);padding:14px 18px;cursor:pointer;
+  border-bottom:2px solid transparent;transition:all 0.2s;
+  background:none;border-top:none;border-left:none;border-right:none;
+  letter-spacing:0.02em;
+}
+.res-tab:hover{color:rgba(245,242,238,0.65);}
+.res-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* Section title */
+.section-title{
+  font-family:'Playfair Display',serif;font-size:12px;font-weight:400;
+  font-style:italic;color:var(--muted);letter-spacing:0.05em;
+  margin-bottom:24px;display:flex;align-items:center;gap:14px;
+}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* Export bar */
+.export-bar{
+  background:var(--cream);padding:12px 52px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:flex-end;gap:10px;
+}
+.btn-export{
+  background:none;border:1px solid var(--border);color:var(--muted);
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;
+  padding:7px 16px;cursor:pointer;border-radius:2px;transition:all 0.2s;
+}
+.btn-export:hover{border-color:var(--gold);color:var(--gold);}
+
+/* Overview body */
+.overview-body{padding:48px 52px;max-width:1160px;margin:0 auto;}
+
+/* CTA */
+.cta-section{
+  background:var(--ink);padding:72px 52px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.cta-section::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 50% 70% at 50% 100%, rgba(201,168,76,0.09), transparent 70%);
+}
+.cta-eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.22em;color:var(--gold);text-transform:uppercase;margin-bottom:18px;}
+.cta-headline{font-family:'Playfair Display',serif;font-size:clamp(26px,4vw,46px);font-weight:400;color:var(--paper);max-width:520px;margin:0 auto 14px;line-height:1.2;}
+.cta-headline em{font-style:italic;color:var(--gold);}
+.cta-sub{font-size:14px;color:rgba(245,242,238,0.38);max-width:360px;margin:0 auto 32px;font-weight:300;line-height:1.6;}
+.btn-cta{
+  background:transparent;color:var(--gold);border:1px solid var(--gold);
+  padding:15px 44px;font-family:'DM Sans',sans-serif;font-size:13px;
+  font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+  cursor:pointer;transition:all 0.25s;border-radius:2px;
+}
+.btn-cta:hover{background:var(--gold);color:var(--ink);}
+
+/* ═══════════════════════════════════════
+   PRINT
+═══════════════════════════════════════ */
+@media print{
+  .res-header,.res-tabs,.export-bar,.cta-section,
+  #page-upload,.loading-screen,.privacy-screen,
+  .btn-reset{display:none!important;}
+  #page-results{display:block!important;}
+  .tab-panel{display:block!important;}
+  body{background:white;color:black;}
+  .res-metrics-strip{background:white;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media(max-width:900px){
+  .zones-wrap{grid-template-columns:1fr;}
+  .hero h1{font-size:clamp(34px,8vw,52px);}
+  .res-header{flex-direction:column;padding:16px 20px;position:relative;}
+  .res-header-brand{border-right:none;padding-right:0;padding-bottom:10px;border-bottom:1px solid rgba(245,242,238,0.07);margin-bottom:10px;}
+  .res-metrics-strip{grid-template-columns:1fr 1fr;}
+  .res-metric{padding:12px 16px;}
+  .res-header-right{padding-left:0;border-left:none;padding-top:10px;border-top:1px solid rgba(245,242,238,0.07);}
+  .res-tabs{padding:0 20px;overflow-x:auto;}
+  .overview-body{padding:28px 20px;}
+  .export-bar{padding:10px 20px;}
+  .privacy-card{padding:36px 24px;}
+  .privacy-two-col{grid-template-columns:1fr;}
+  .cta-section{padding:52px 20px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ LOADING SCREEN ═══════════════════ -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-brand">BeautyIntel OS</div>
+  <div class="loading-bar-track"><div class="loading-bar-fill" id="loadBar"></div></div>
+  <div class="loading-steps" id="loadSteps"></div>
+</div>
+
+<!-- ═══════════════════ PAGE: UPLOAD ═══════════════════ -->
+<section class="page active" id="page-upload">
+  <div class="hero">
+    <div class="hero-badge">BeautyIntel OS — Financial Autopsy</div>
+    <h1>Your money has<br>a <em>confession</em> to make.</h1>
+    <p class="hero-sub">Drop your sales report and spending history — we'll show you exactly where it went, what it cost you, and how to get it back.</p>
+
+    <!-- Drop zones -->
+    <div class="zones-wrap">
+      <!-- SALES ZONE -->
+      <div class="drop-zone" id="zoneSales" ondragover="zoneDragOver(event,'zoneSales')" ondragleave="zoneDragLeave('zoneSales')" ondrop="zoneDrop(event,'sales')">
+        <div class="zone-icon">📈</div>
+        <h3>Your Sales &amp; Bookings</h3>
+        <p>Export from any booking platform — Fresha, Vagaro, Mindbody, Treatwell, Timely, Phorest, GlossGenius or any sales report</p>
+        <input type="file" id="fileSales" accept=".csv" onchange="fileChosen(event,'sales')">
+        <button class="btn-choose" onclick="document.getElementById('fileSales').click()">Choose File</button>
+        <div class="zone-file-name" id="salesFileName"></div>
+        <div class="zone-queued" id="salesQueued">
+          <span class="zone-queued-name" id="salesQueuedName"></span>
+          <span class="zone-queued-size" id="salesQueuedSize"></span>
+          <button class="zone-remove" onclick="removeZoneFile('sales')">✕</button>
+        </div>
+      </div>
+
+      <!-- SPENDING ZONE -->
+      <div class="drop-zone" id="zoneSpend" ondragover="zoneDragOver(event,'zoneSpend')" ondragleave="zoneDragLeave('zoneSpend')" ondrop="zoneDrop(event,'spend')">
+        <div class="zone-icon">💳</div>
+        <h3>Your Business Spending</h3>
+        <p>Export from any bank or payment app — Revolut, AIB, Bank of Ireland, Stripe, PayPal or any transaction history</p>
+        <input type="file" id="fileSpend" accept=".csv" onchange="fileChosen(event,'spend')">
+        <button class="btn-choose" onclick="document.getElementById('fileSpend').click()">Choose File</button>
+        <div class="zone-file-name" id="spendFileName"></div>
+        <div class="zone-queued" id="spendQueued">
+          <span class="zone-queued-name" id="spendQueuedName"></span>
+          <span class="zone-queued-size" id="spendQueuedSize"></span>
+          <button class="zone-remove" onclick="removeZoneFile('spend')">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Privacy note -->
+    <p class="privacy-note">
+      <span class="lock">🔒</span>Private identifiers are automatically removed before anything is analysed
+    </p>
+
+    <!-- API key -->
+    <div class="api-row">
+      <input type="password" class="api-input" id="apiKeyInput" placeholder="Anthropic API key (optional — enables AI analysis)" autocomplete="off">
+      <span class="api-badge off" id="apiBadge">◆ Standard Mode</span>
+    </div>
+
+    <!-- Run button -->
+    <button class="btn-run" id="btnRun">Continue to Privacy Review →</button>
+  </div>
+</section>
+
+<!-- ═══════════════════ PAGE: PRIVACY CONFIRMATION ═══════════════════ -->
+<section class="page" id="page-privacy">
+  <div class="privacy-screen">
+    <div class="privacy-card">
+      <div class="privacy-lock-icon">🔒</div>
+      <h2>Before we <em>analyse</em></h2>
+      <div class="privacy-tx-count" id="privTxCount">0</div>
+      <div class="privacy-tx-label">transactions ready for analysis</div>
+      <div class="privacy-two-col">
+        <div>
+          <div class="privacy-col-label removed">⊘ Removed</div>
+          <div class="privacy-item removed-item" id="privRemoved">—</div>
+        </div>
+        <div>
+          <div class="privacy-col-label kept">✓ Kept for analysis</div>
+          <div class="privacy-item kept-item" id="privKept">—</div>
+        </div>
+      </div>
+      <div class="privacy-pledge">
+        BeautyIntel OS never sees your personal details. Ever. Only your spending patterns and service performance are used in the analysis.
+      </div>
+      <button class="btn-run-analysis" id="btnRunAnalysis">Run Financial Autopsy →</button>
+      <br>
+      <button class="btn-back-upload" onclick="showPage('page-upload')">← Back to upload</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ PAGE: RESULTS ═══════════════════ -->
+<section class="page" id="page-results">
+
+  <!-- Header with metrics -->
+  <div class="res-header">
+    <div class="res-header-brand">BeautyIntel OS</div>
+    <div class="res-metrics-strip">
+      <div class="res-metric">
+        <div class="res-metric-label">Gross Revenue</div>
+        <div class="res-metric-value gold" id="mRevenue">€0</div>
+        <div class="res-metric-sub" id="mRevenuesSub">—</div>
+      </div>
+      <div class="res-metric">
+        <div class="res-metric-label">Total Expenses</div>
+        <div class="res-metric-value danger" id="mExpenses">€0</div>
+        <div class="res-metric-sub" id="mExpensesSub">—</div>
+      </div>
+      <div class="res-metric">
+        <div class="res-metric-label">Net Profit</div>
+        <div class="res-metric-value" id="mProfit">€0</div>
+        <div class="res-metric-sub" id="mProfitSub">—</div>
+      </div>
+      <div class="res-metric">
+        <div class="res-metric-label">Health Score</div>
+        <div class="res-metric-value" id="mHealth">0</div>
+        <div class="res-metric-sub" id="mHealthSub">—</div>
+      </div>
+    </div>
+    <div class="res-header-right">
+      <span class="privacy-badge">🔒 Privacy Mode</span>
+      <span class="ai-mode-badge std" id="aiModeBadge">◆ Standard</span>
+      <button class="btn-reset" id="btnReset">↩ New Analysis</button>
+    </div>
+  </div>
+
+  <!-- Tab nav -->
+  <div class="res-tabs">
+    <button class="res-tab active" data-tab="overview">Overview</button>
+    <button class="res-tab" data-tab="growth">Growth Engine</button>
+    <button class="res-tab" data-tab="report">AI Report</button>
+    <button class="res-tab" data-tab="anomalies">Anomalies <span id="anomalyBadge" style="font-size:10px;opacity:0.55;"></span></button>
+  </div>
+
+  <!-- Export bar -->
+  <div class="export-bar">
+    <button class="btn-export" onclick="window.print()">🖨 Export PDF</button>
+  </div>
+
+  <!-- TAB: OVERVIEW -->
+  <div class="tab-panel active" id="tab-overview">
+    <div class="overview-body">
+      <!-- Stacked bar -->
+      <div id="stackedBarSection" style="margin-bottom:48px;"></div>
+      <!-- Channel ROI -->
+      <div id="channelSection" style="display:none;margin-bottom:48px;"></div>
+      <!-- Top services -->
+      <div id="servicesSection" style="display:none;margin-bottom:48px;"></div>
+      <!-- P&L Breakdown -->
+      <div id="plSection" style="margin-bottom:48px;"></div>
+      <!-- Expense breakdown -->
+      <div id="expenseSection" style="margin-bottom:48px;"></div>
+      <!-- Donut + actions -->
+      <div id="actionsSection"></div>
+    </div>
+  </div>
+
+  <!-- TAB: GROWTH ENGINE -->
+  <div class="tab-panel" id="tab-growth">
+    <div class="overview-body" id="growthBody"></div>
+  </div>
+
+  <!-- TAB: AI REPORT -->
+  <div class="tab-panel" id="tab-report">
+    <div class="overview-body" id="reportBody" style="max-width:800px;"></div>
+  </div>
+
+  <!-- TAB: ANOMALIES -->
+  <div class="tab-panel" id="tab-anomalies">
+    <div class="overview-body" id="anomalyBody"></div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <div class="cta-eyebrow">Next step</div>
+    <h2 class="cta-headline">Turn this data into <em>profit</em>.</h2>
+    <p class="cta-sub">15 minutes. Your numbers. A strategy built specifically for your business.</p>
+    <button class="btn-cta" onclick="alert('Connect your Calendly here')">Book Free Strategy Call</button>
+  </div>
+</section>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// APP STATE
+// ═══════════════════════════════════════════════════════
+const APP = {
+  salesFile: null, spendFile: null,
+  salesRaw: null,  spendRaw: null,
+  salesStripped: [], spendStripped: [],
+  privacyRemovedItems: [], privacyKeptItems: [],
+  metrics: {}, categories: {}, actions: [], anomalies: [],
+  narrative: null, oneMoveData: null,
+  analysisMode: 'rules',
+  charts: {}
+};
+
+// ═══════════════════════════════════════════════════════
+// PAGE NAV
+// ═══════════════════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ═══════════════════════════════════════════════════════
+// API KEY
+// ═══════════════════════════════════════════════════════
+const apiInput = document.getElementById('apiKeyInput');
+const apiBadge = document.getElementById('apiBadge');
+apiInput.addEventListener('input', () => {
+  const v = apiInput.value.trim();
+  if (v.startsWith('sk-')) {
+    sessionStorage.setItem('BI_API_KEY', v);
+    APP.analysisMode = 'ai';
+    apiBadge.textContent = '🤖 AI Mode'; apiBadge.className = 'api-badge on';
+  } else {
+    sessionStorage.removeItem('BI_API_KEY');
+    APP.analysisMode = 'rules';
+    apiBadge.textContent = '◆ Standard Mode'; apiBadge.className = 'api-badge off';
+  }
+});
+(function initKey() {
+  const k = sessionStorage.getItem('BI_API_KEY');
+  if (k) { apiInput.value = k; APP.analysisMode = 'ai'; apiBadge.textContent = '🤖 AI Mode'; apiBadge.className = 'api-badge on'; }
+})();
+
+// ═══════════════════════════════════════════════════════
+// DRAG & DROP + FILE SELECTION
+// ═══════════════════════════════════════════════════════
+function zoneDragOver(e, zoneId) { e.preventDefault(); document.getElementById(zoneId).classList.add('drag-over'); }
+function zoneDragLeave(zoneId)   { document.getElementById(zoneId).classList.remove('drag-over'); }
+function zoneDrop(e, type) {
+  e.preventDefault();
+  const zoneId = type === 'sales' ? 'zoneSales' : 'zoneSpend';
+  document.getElementById(zoneId).classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.toLowerCase().endsWith('.csv')) assignFile(file, type);
+}
+function fileChosen(e, type) {
+  const file = e.target.files[0];
+  if (file) assignFile(file, type);
+  e.target.value = '';
+}
+window.zoneDragOver = zoneDragOver;
+window.zoneDragLeave = zoneDragLeave;
+window.zoneDrop = zoneDrop;
+window.fileChosen = fileChosen;
+
+async function assignFile(file, type) {
+  // Read & auto-detect if needed
+  const text = await file.text();
+  const detected = autoDetectFileType(text);
+  const finalType = detected || type;
+
+  if (finalType === 'sales') {
+    APP.salesFile = file; APP.salesRaw = text;
+    showQueued('sales', file.name, file.size);
+  } else {
+    APP.spendFile = file; APP.spendRaw = text;
+    showQueued('spend', file.name, file.size);
+  }
+  updateRunBtn();
+}
+
+function autoDetectFileType(csvText) {
+  const headers = csvText.split(/\r?\n/)[0].toLowerCase();
+  const salesKW = ['service','item','booking','treatment','appointment','gross sales','net sales','marketplace','channel','team member','stylist','therapist'];
+  const spendKW = ['iban','sort code','account number','balance','merchant','debit','credit','bic','running balance'];
+  const sScore = salesKW.filter(k => headers.includes(k)).length;
+  const spScore = spendKW.filter(k => headers.includes(k)).length;
+  if (sScore > spScore && sScore > 0) return 'sales';
+  if (spScore > sScore && spScore > 0) return 'spend';
+  return null;
+}
+
+function showQueued(type, name, size) {
+  const el = document.getElementById(type === 'sales' ? 'salesQueued' : 'spendQueued');
+  document.getElementById(type === 'sales' ? 'salesQueuedName' : 'spendQueuedName').textContent = name;
+  document.getElementById(type === 'sales' ? 'salesQueuedSize' : 'spendQueuedSize').textContent = fmtBytes(size);
+  el.classList.add('visible');
+}
+
+function removeZoneFile(type) {
+  if (type === 'sales') { APP.salesFile = null; APP.salesRaw = null; document.getElementById('salesQueued').classList.remove('visible'); }
+  else                  { APP.spendFile = null; APP.spendRaw = null; document.getElementById('spendQueued').classList.remove('visible'); }
+  updateRunBtn();
+}
+window.removeZoneFile = removeZoneFile;
+
+function updateRunBtn() {
+  const btn = document.getElementById('btnRun');
+  if (APP.salesFile || APP.spendFile) { btn.classList.add('visible'); }
+  else { btn.classList.remove('visible'); }
+}
+
+// ═══════════════════════════════════════════════════════
+// CSV PARSER
+// ═══════════════════════════════════════════════════════
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/);
+  if (lines.length < 2) return { headers: [], rows: [] };
+  const headers = splitLine(lines[0]).map(h => h.toLowerCase().trim());
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const cols = splitLine(lines[i]);
+    const row = {};
+    headers.forEach((h, j) => { row[h] = (cols[j] || '').trim(); });
+    rows.push(row);
+  }
+  return { headers, rows };
+}
+
+function splitLine(line) {
+  const out = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { out.push(cur.trim()); cur = ''; }
+    else { cur += c; }
+  }
+  out.push(cur.trim());
+  return out;
+}
+
+function parseAmount(str) {
+  if (!str) return 0;
+  const n = parseFloat(String(str).replace(/[€£$,\s]/g,''));
+  return isNaN(n) ? 0 : Math.abs(n);
+}
+
+function parseDate(str) {
+  if (!str) return null;
+  let m = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+  if (m) return new Date(+m[3], +m[2]-1, +m[1]);
+  m = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return new Date(+m[1], +m[2]-1, +m[3]);
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function findCol(headers, candidates) {
+  for (const c of candidates) {
+    const idx = headers.findIndex(h => h.includes(c));
+    if (idx !== -1) return idx;
+  }
+  return -1;
+}
+
+// ═══════════════════════════════════════════════════════
+// PRIVACY STRIPPING — SALES
+// ═══════════════════════════════════════════════════════
+function stripSalesData(text) {
+  const { headers, rows } = parseCSV(text);
+  const removed = [];
+  const kept = [];
+
+  // Column finders
+  const dateIdx    = findCol(headers, ['date','created','completed','booking date','appointment date']);
+  const serviceIdx = findCol(headers, ['service','item','product','treatment','appointment type','description']);
+  const grossIdx   = findCol(headers, ['gross sales','gross','gross revenue','amount','total','price','sale amount']);
+  const netIdx     = findCol(headers, ['net sales','net revenue','net amount','net']);
+  const discIdx    = findCol(headers, ['discount','discounts']);
+  const refundIdx  = findCol(headers, ['refund','refunds']);
+  const feeIdx     = findCol(headers, ['fee','fees','platform fee','commission','processing']);
+  const channelIdx = findCol(headers, ['channel','source','type','booking type','sales channel']);
+  const staffIdx   = findCol(headers, ['team member','staff','stylist','therapist','employee','provider','technician']);
+
+  // Detect what's being removed
+  const sensitivePatterns = ['client name','client email','client phone','email','phone','mobile','customer name','guest name','surname','last name','id','identifier'];
+  const removedCols = headers.filter(h => sensitivePatterns.some(p => h.includes(p)));
+  if (removedCols.length) removed.push(...removedCols.map(c => c.replace(/\b\w/g,l=>l.toUpperCase())));
+
+  if (dateIdx !== -1)    kept.push('Dates');
+  if (serviceIdx !== -1) kept.push('Service names');
+  if (grossIdx !== -1 || netIdx !== -1) kept.push('Amounts');
+  if (channelIdx !== -1) kept.push('Sales channel');
+  if (staffIdx !== -1)   kept.push('First names only');
+
+  const stripped = rows.map(row => {
+    const r = {};
+    if (dateIdx !== -1)    r.date    = parseDate(row[headers[dateIdx]]);
+    if (serviceIdx !== -1) r.service = row[headers[serviceIdx]] || '';
+    if (grossIdx !== -1)   r.gross   = parseAmount(row[headers[grossIdx]]);
+    if (netIdx !== -1)     r.net     = parseAmount(row[headers[netIdx]]);
+    if (discIdx !== -1)    r.discount = parseAmount(row[headers[discIdx]]);
+    if (refundIdx !== -1)  r.refund  = parseAmount(row[headers[refundIdx]]);
+    if (feeIdx !== -1)     r.fee     = parseAmount(row[headers[feeIdx]]);
+    if (channelIdx !== -1) r.channel = row[headers[channelIdx]] || '';
+    // First name only from staff
+    if (staffIdx !== -1) {
+      const full = row[headers[staffIdx]] || '';
+      r.staff = full.split(/\s+/)[0];
+    }
+    return r;
+  }).filter(r => (r.gross || r.net || 0) > 0);
+
+  return { stripped, removed, kept };
+}
+
+// ═══════════════════════════════════════════════════════
+// PRIVACY STRIPPING — SPENDING
+// ═══════════════════════════════════════════════════════
+function stripSpendData(text) {
+  const { headers, rows } = parseCSV(text);
+  const removed = [];
+  const kept = [];
+
+  const dateIdx  = findCol(headers, ['date','completed date','transaction date','posted','created']);
+  const descIdx  = findCol(headers, ['description','merchant','narrative','reference','details','payee','memo','particulars','beneficiary']);
+  const amtIdx   = findCol(headers, ['amount','debit','credit','value','payment','charge','total']);
+
+  const sensitiveHeaders = ['iban','account','sort code','bic','balance','running balance','card','address','phone','email','mobile'];
+  const removedCols = headers.filter(h => sensitiveHeaders.some(p => h.includes(p)));
+  if (removedCols.length) removed.push(...removedCols.map(c => c.replace(/\b\w/g,l=>l.toUpperCase())));
+  if (removed.length === 0) removed.push('No sensitive columns detected');
+
+  if (dateIdx !== -1)  kept.push('Dates');
+  if (descIdx !== -1)  kept.push('Merchant/description');
+  if (amtIdx !== -1)   kept.push('Amounts (absolute)');
+
+  const stripped = rows.map(row => {
+    const r = {};
+    if (dateIdx !== -1) r.date = parseDate(row[headers[dateIdx]]);
+    if (descIdx !== -1) r.desc = row[headers[descIdx]] || '';
+    if (amtIdx !== -1)  r.amount = parseAmount(row[headers[amtIdx]]);
+    return r;
+  }).filter(r => r.amount > 0);
+
+  return { stripped, removed, kept };
+}
+
+// ═══════════════════════════════════════════════════════
+// CATEGORISE SPENDING
+// ═══════════════════════════════════════════════════════
+const SPEND_CATS = [
+  { id:'products',   label:'Products & Supplies',      color:'#c9a84c', kw:['product','supply','wholesale','cosmetic','hair','nail','wax','lash','brow','gel','acetone','brush','tool','equipment','glue','tint','perm','salon','spa','distributor'] },
+  { id:'platform',   label:'Platform & Booking Fees',  color:'#8aaa8a', kw:['stripe','square','paypal','fresha','vagaro','mindbody','treatwell','glossgenius','timely','phorest','booking','transaction fee','processing fee','platform','commission','service fee'] },
+  { id:'software',   label:'Software & Subscriptions', color:'#a8b4c8', kw:['subscription','canva','adobe','zoom','slack','notion','mailchimp','klaviyo','hubspot','squarespace','wix','shopify','netflix','spotify','dropbox','google','microsoft','apple','icloud','figma','later','planoly','software'] },
+  { id:'marketing',  label:'Marketing & Ads',          color:'#e8b4b8', kw:['facebook','instagram','tiktok','meta','google ads','advertising','promoted','boost','campaign','influencer','print','flyer','poster','ad ','ads '] },
+  { id:'rent',       label:'Rent & Utilities',         color:'#c4a882', kw:['rent','utility','electric','esb','water','gas','internet','broadband','phone','mobile','eircom','vodafone','three','eir','rates','council','bills'] },
+  { id:'loan',       label:'Loan & Finance',           color:'#a8a0b8', kw:['loan','repayment','finance','credit','mortgage','lease','interest','hire purchase'] },
+  { id:'transport',  label:'Transport',                color:'#94b4a4', kw:['uber','taxi','bus','luas','dart','fuel','petrol','diesel','parking','toll','applegreen','circle k','maxol','aa '] },
+  { id:'education',  label:'Training & Education',     color:'#b4a8c8', kw:['course','training','workshop','education','certification','masterclass','class','tutorial','udemy','skillshare','mentorship','academy'] },
+  { id:'insurance',  label:'Insurance',                color:'#c8b4a0', kw:['insurance','insure','axa','allianz','aviva','fbd','cover','policy','premium'] },
+  { id:'food',       label:'Food & Hospitality',       color:'#b8c8a0', kw:['cafe','coffee','restaurant','lunch','dinner','takeaway','grocery','tesco','lidl','aldi','dunnes','marks','food','starbucks','costa','insomnia'] },
+];
+
+function categoriseSpend(desc) {
+  const d = desc.toLowerCase();
+  for (const cat of SPEND_CATS) {
+    if (cat.kw.some(k => d.includes(k))) return { ...cat };
+  }
+  return { id:'uncategorized', label:'Uncategorised', color:'#e07070' };
+}
+
+// ═══════════════════════════════════════════════════════
+// P&L CALCULATION — M2
+// ═══════════════════════════════════════════════════════
+function calculatePL() {
+  const s = APP.salesStripped;
+  const e = APP.spendStripped;
+  const m = {};
+
+  // SALES
+  if (s.length > 0) {
+    m.grossSales    = s.reduce((a,r) => a + (r.gross || r.net || 0), 0);
+    m.totalDiscounts= s.reduce((a,r) => a + (r.discount || 0), 0);
+    m.totalRefunds  = s.reduce((a,r) => a + (r.refund || 0), 0);
+    m.totalFees     = s.reduce((a,r) => a + (r.fee || 0), 0);
+    // Estimate platform fees if no fee column
+    if (m.totalFees === 0) {
+      const mktRows = s.filter(r => /market|online|platform/i.test(r.channel || ''));
+      m.totalFees = mktRows.reduce((a,r) => a + (r.gross || r.net || 0), 0) * 0.20;
+    }
+    m.netRevenue = m.grossSales - m.totalDiscounts - m.totalRefunds - m.totalFees;
+    m.avgTransValue = s.length > 0 ? m.grossSales / s.length : 0;
+    m.txCount = s.length;
+
+    // Top 3 services
+    const svcTotals = {};
+    s.forEach(r => {
+      const svc = r.service || 'Unknown';
+      svcTotals[svc] = (svcTotals[svc] || 0) + (r.gross || r.net || 0);
+    });
+    m.topServices = Object.entries(svcTotals)
+      .sort((a,b) => b[1]-a[1]).slice(0,3)
+      .map(([name,total]) => ({ name, total, pct: total/m.grossSales*100, avgTx: total/(s.filter(r=>r.service===name).length||1) }));
+
+    // Channel split
+    const channels = {};
+    s.forEach(r => {
+      const ch = (r.channel || 'Offline').trim() || 'Offline';
+      if (!channels[ch]) channels[ch] = { revenue:0, count:0 };
+      channels[ch].revenue += r.gross || r.net || 0;
+      channels[ch].count++;
+    });
+    m.channels = channels;
+  } else {
+    m.grossSales = 0; m.netRevenue = 0; m.totalDiscounts = 0;
+    m.totalRefunds = 0; m.totalFees = 0; m.avgTransValue = 0; m.txCount = 0;
+    m.topServices = []; m.channels = {};
+  }
+
+  // EXPENSES
+  if (e.length > 0) {
+    const catMap = {};
+    e.forEach(r => {
+      const cat = categoriseSpend(r.desc || '');
+      r.category = cat.id; r.categoryLabel = cat.label; r.categoryColor = cat.color;
+      if (!catMap[cat.id]) catMap[cat.id] = { ...cat, amount:0, count:0 };
+      catMap[cat.id].amount += r.amount;
+      catMap[cat.id].count++;
+    });
+    APP.categories = catMap;
+    m.totalExpenses = e.reduce((a,r) => a + r.amount, 0);
+    m.uncatAmount   = catMap['uncategorized']?.amount || 0;
+    m.uncatPct      = m.totalExpenses > 0 ? m.uncatAmount/m.totalExpenses*100 : 0;
+    const sortedCats = Object.values(catMap).sort((a,b) => b.amount-a.amount);
+    m.biggestExpCat = sortedCats[0] || null;
+    m.expSorted = sortedCats;
+  } else {
+    m.totalExpenses = 0; m.uncatAmount = 0; m.uncatPct = 0;
+    m.biggestExpCat = null; m.expSorted = [];
+    APP.categories = {};
+  }
+
+  // PROFIT
+  const useRevenue = m.netRevenue > 0 ? m.netRevenue : m.grossSales;
+  m.netProfit    = useRevenue - m.totalExpenses;
+  m.profitMargin = useRevenue > 0 ? (m.netProfit / useRevenue) * 100 : 0;
+  m.profitPerDay = m.netProfit / 30;
+
+  // Recoverable (20% of uncategorised + 30% of software + 20% of platform fees from expenses)
+  const softwareAmt = APP.categories['software']?.amount || 0;
+  const platExpAmt  = APP.categories['platform']?.amount || 0;
+  m.recoverable = Math.round(m.uncatAmount * 0.2 + softwareAmt * 0.3 + platExpAmt * 0.2);
+
+  // HEALTH SCORE
+  m.healthScore = calcHealthScore(m);
+  m.healthLabel = healthLabel(m.healthScore);
+
+  APP.metrics = m;
+  return m;
+}
+
+function calcHealthScore(m) {
+  let score = 0;
+  // 1. Profit margin
+  const pm = m.profitMargin;
+  if (pm >= 65) score += 25; else if (pm >= 50) score += 20; else if (pm >= 35) score += 13; else score += 5;
+  // 2. Expense visibility
+  const up = m.uncatPct;
+  if (up < 5) score += 25; else if (up < 15) score += 18; else if (up < 30) score += 10; else score += 3;
+  // 3. Platform fee rate
+  const pfr = m.grossSales > 0 ? (m.totalFees / m.grossSales) * 100 : 0;
+  if (pfr < 5) score += 25; else if (pfr < 10) score += 18; else if (pfr < 20) score += 10; else score += 3;
+  // 4. Discount rate
+  const dr = m.grossSales > 0 ? (m.totalDiscounts / m.grossSales) * 100 : 0;
+  if (dr < 3) score += 25; else if (dr < 8) score += 18; else if (dr < 15) score += 10; else score += 3;
+  return Math.min(100, Math.max(0, score));
+}
+
+function healthLabel(score) {
+  if (score >= 90) return 'Excellent';
+  if (score >= 75) return 'Strong';
+  if (score >= 60) return 'Healthy';
+  if (score >= 45) return 'Needs Attention';
+  return 'Critical';
+}
+
+// ═══════════════════════════════════════════════════════
+// LOADING SCREEN
+// ═══════════════════════════════════════════════════════
+const STEPS = [
+  'Reading your files',
+  'Removing private data',
+  'Calculating your P&L',
+  'Sending to AI',
+  'Building your report'
+];
+
+function showLoading() {
+  const screen = document.getElementById('loadingScreen');
+  const stepsEl = document.getElementById('loadSteps');
+  stepsEl.innerHTML = STEPS.map((s,i) => `
+    <div class="load-step" id="lstep${i}">
+      <div class="load-step-dot"></div><div>${s}</div>
+    </div>`).join('');
+  screen.classList.add('active');
+  setLoadStep(0);
+}
+function setLoadStep(i) {
+  STEPS.forEach((_,j) => {
+    const el = document.getElementById(`lstep${j}`);
+    if (!el) return;
+    el.classList.remove('active','done');
+    if (j < i)  el.classList.add('done');
+    if (j === i) el.classList.add('active');
+  });
+  document.getElementById('loadBar').style.width = ((i+1)/STEPS.length*100) + '%';
+}
+function hideLoading() {
+  document.getElementById('loadBar').style.width = '100%';
+  setTimeout(() => document.getElementById('loadingScreen').classList.remove('active'), 350);
+}
+
+// ═══════════════════════════════════════════════════════
+// PRIVACY SCREEN FLOW — M1
+// ═══════════════════════════════════════════════════════
+document.getElementById('btnRun').addEventListener('click', async () => {
+  showLoading(); setLoadStep(0);
+  await sleep(200);
+
+  // Step 1: Parse + strip
+  setLoadStep(1);
+  const removed = [], kept = [];
+  let txCount = 0;
+
+  if (APP.salesRaw) {
+    const res = stripSalesData(APP.salesRaw);
+    APP.salesStripped = res.stripped;
+    txCount += res.stripped.length;
+    removed.push(...res.removed);
+    kept.push(...res.kept);
+    removed.push('Client names', 'Client emails', 'Client phone numbers', 'Full staff names');
+  }
+  if (APP.spendRaw) {
+    const res = stripSpendData(APP.spendRaw);
+    APP.spendStripped = res.stripped;
+    txCount += res.stripped.length;
+    removed.push(...res.removed.filter(r => !removed.includes(r)));
+    kept.push(...res.kept.filter(k => !kept.includes(k)));
+    removed.push('IBAN', 'Account numbers', 'Sort codes', 'Card numbers');
+  }
+  APP.privacyRemovedItems = [...new Set(removed)];
+  APP.privacyKeptItems    = [...new Set(kept)];
+
+  hideLoading();
+
+  // Show privacy confirmation
+  document.getElementById('privTxCount').textContent = txCount.toLocaleString('en-IE');
+  document.getElementById('privRemoved').innerHTML = APP.privacyRemovedItems.join('<br>') || '—';
+  document.getElementById('privKept').innerHTML    = APP.privacyKeptItems.join('<br>') || '—';
+  showPage('page-privacy');
+});
+
+// ═══════════════════════════════════════════════════════
+// RUN FULL ANALYSIS — M2+
+// ═══════════════════════════════════════════════════════
+document.getElementById('btnRunAnalysis').addEventListener('click', async () => {
+  showLoading(); setLoadStep(2);
+  await sleep(300);
+
+  // Calculate P&L
+  const m = calculatePL();
+
+  // AI step
+  setLoadStep(3);
+  const apiKey = sessionStorage.getItem('BI_API_KEY');
+  if (apiKey) {
+    try { await runAIAnalysis(apiKey, m); APP.analysisMode = 'ai'; }
+    catch(e) { console.warn('AI failed, falling back:', e); buildRuleBasedInsights(m); APP.analysisMode = 'rules'; }
+  } else {
+    buildRuleBasedInsights(m);
+  }
+
+  setLoadStep(4);
+  await sleep(300);
+  hideLoading();
+
+  renderResults(m);
+  showPage('page-results');
+});
+
+// ═══════════════════════════════════════════════════════
+// AI ANALYSIS — M5
+// ═══════════════════════════════════════════════════════
+async function runAIAnalysis(apiKey, m) {
+  const salesSample = APP.salesStripped.slice(0,75).map(r => ({
+    date: r.date?.toISOString().slice(0,10), service: r.service,
+    gross: r.gross, net: r.net, channel: r.channel, discount: r.discount, fee: r.fee
+  }));
+  const spendSample = APP.spendStripped.slice(0,75).map(r => ({
+    date: r.date?.toISOString().slice(0,10), desc: r.desc, amount: r.amount, category: r.category
+  }));
+
+  const metricsPayload = {
+    gross_sales: Math.round(m.grossSales), net_revenue: Math.round(m.netRevenue),
+    total_expenses: Math.round(m.totalExpenses), net_profit: Math.round(m.netProfit),
+    profit_margin_pct: Math.round(m.profitMargin), total_discounts: Math.round(m.totalDiscounts),
+    total_refunds: Math.round(m.totalRefunds), platform_fees: Math.round(m.totalFees),
+    top_services: m.topServices, health_score: m.healthScore, health_label: m.healthLabel,
+    recoverable: m.recoverable, biggest_expense: m.biggestExpCat?.label,
+    uncat_pct: Math.round(m.uncatPct), avg_transaction: Math.round(m.avgTransValue)
+  };
+
+  const sys = `You are a financial analyst specialising in beauty and wellness businesses in Ireland. Analyse this data and respond ONLY with valid JSON: { "narrative": { "summary": string, "working": string, "risks": string, "action_plan": string }, "one_move": { "headline": string, "investment": number, "monthly_uplift": number, "roi_pct": number, "payback_days": number, "reasoning": string }, "opportunities": [ { "title": string, "detail": string, "investment": number, "monthly_uplift": number, "roi_pct": number, "timeline": string, "difficulty": "low"|"medium"|"high" } ], "anomalies": [ { "title": string, "description": string, "severity": "high"|"medium"|"low", "potential_saving": number } ] }. Be specific with euro amounts. Use the actual numbers provided.`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6', max_tokens: 4096, system: sys,
+      messages: [{ role: 'user', content: `Metrics: ${JSON.stringify(metricsPayload)}\n\nSales sample: ${JSON.stringify(salesSample)}\n\nSpend sample: ${JSON.stringify(spendSample)}\n\nRespond with JSON only.` }]
+    })
+  });
+  if (!resp.ok) throw new Error(`API ${resp.status}`);
+  const data = await resp.json();
+  let txt = data.content[0].text;
+  const jm = txt.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (jm) txt = jm[1];
+  const ai = JSON.parse(txt);
+  APP.narrative  = ai.narrative;
+  APP.oneMoveData= ai.one_move;
+  APP.opportunities = ai.opportunities || [];
+  APP.anomalies  = ai.anomalies || [];
+}
+
+// ═══════════════════════════════════════════════════════
+// RULE-BASED INSIGHTS — fallback
+// ═══════════════════════════════════════════════════════
+function buildRuleBasedInsights(m) {
+  APP.narrative = {
+    summary: `Your business analysed ${m.txCount} transactions with gross sales of ${fmt(m.grossSales)}. After expenses of ${fmt(m.totalExpenses)}, your net profit stands at ${fmt(m.netProfit)} — a ${Math.round(m.profitMargin)}% margin. Your health score of ${m.healthScore}/100 places you in the "${m.healthLabel}" category.`,
+    working: `${m.topServices?.length > 0 ? `Your top service is "${m.topServices[0]?.name}" generating ${fmt(m.topServices[0]?.total)}. ` : ''}Your average transaction value is ${fmt(m.avgTransValue)}.`,
+    risks: `${m.uncatPct > 10 ? `${Math.round(m.uncatPct)}% of expenses (${fmt(m.uncatAmount)}) are uncategorised — a blind spot that hides waste. ` : ''}${m.totalFees > m.grossSales * 0.1 ? `Platform fees at ${Math.round(m.totalFees/m.grossSales*100)}% of revenue are above the 10% threshold. ` : ''}${m.totalDiscounts > m.grossSales * 0.08 ? `Discounts at ${Math.round(m.totalDiscounts/m.grossSales*100)}% of gross sales are eroding your margins. ` : ''}Connect an API key for a full AI-powered risk diagnosis.`,
+    action_plan: `Priority 1: Audit your ${fmt(m.uncatAmount)} in uncategorised spend — identify and eliminate waste. Priority 2: Reduce platform dependency by shifting 20% of bookings to direct. Priority 3: Review subscriptions — industry average shows 30% go unused. Estimated monthly recovery: ${fmt(m.recoverable)}.`
+  };
+  // Rule-based one move
+  const moves = [];
+  if (m.recoverable > 100) moves.push({ headline:`Recover €${m.recoverable}/month in identified waste`, investment:0, monthly_uplift:m.recoverable, roi_pct:9999, payback_days:0, reasoning:`Based on uncategorised spend, software subscriptions and platform fees in your data.` });
+  if (m.topServices?.[0]) moves.push({ headline:`Price increase on "${m.topServices[0].name}"`, investment:200, monthly_uplift:Math.round(m.topServices[0].total*0.1), roi_pct:Math.round(m.topServices[0].total*0.1/200*100), payback_days:Math.round(200/(m.topServices[0].total*0.1/30)), reasoning:`Your top service has the highest volume. A 10% price increase would add ${fmt(Math.round(m.topServices[0].total*0.1))}/month.` });
+  APP.oneMoveData = moves[0] || null;
+  APP.opportunities = [
+    { title:'Audit uncategorised spend', detail:`${fmt(m.uncatAmount)} untracked`, investment:0, monthly_uplift:Math.round(m.uncatAmount*0.2), roi_pct:9999, timeline:'1 week', difficulty:'low' },
+    { title:'Cancel unused subscriptions', detail:`${fmt(APP.categories['software']?.amount||0)} in software`, investment:0, monthly_uplift:Math.round((APP.categories['software']?.amount||0)*0.3), roi_pct:9999, timeline:'1 week', difficulty:'low' },
+    { title:'Direct booking push', detail:`Reduce ${Math.round(m.totalFees/m.grossSales*100||0)}% platform fee rate`, investment:100, monthly_uplift:Math.round(m.totalFees*0.2), roi_pct:Math.round(m.totalFees*0.2/100*100), timeline:'1 month', difficulty:'medium' },
+    { title:'Service price review', detail:`Avg transaction ${fmt(m.avgTransValue)}`, investment:0, monthly_uplift:Math.round(m.grossSales*0.05), roi_pct:9999, timeline:'2 weeks', difficulty:'low' },
+    { title:'Reduce discount rate', detail:`${fmt(m.totalDiscounts)} given in discounts`, investment:0, monthly_uplift:Math.round(m.totalDiscounts*0.5), roi_pct:9999, timeline:'Immediate', difficulty:'low' }
+  ].filter(o => o.monthly_uplift > 0);
+  // Rule-based anomalies
+  APP.anomalies = detectAnomaliesRules(m);
+}
+
+function detectAnomaliesRules(m) {
+  const out = [];
+  if (m.uncatPct > 30) out.push({ title:'High uncategorised spend', description:`${Math.round(m.uncatPct)}% of expenses (${fmt(m.uncatAmount)}) are uncategorised — you can't optimise what you can't see.`, severity:'high', potential_saving: Math.round(m.uncatAmount*0.2) });
+  if (m.totalFees > m.grossSales * 0.15) out.push({ title:'Platform fees above 15%', description:`Platform fees of ${fmt(m.totalFees)} represent ${Math.round(m.totalFees/m.grossSales*100)}% of gross sales — significantly above the 5% industry benchmark.`, severity:'high', potential_saving: Math.round(m.totalFees*0.3) });
+  if (m.totalDiscounts > m.grossSales * 0.1) out.push({ title:'Discount rate above 10%', description:`${fmt(m.totalDiscounts)} in discounts (${Math.round(m.totalDiscounts/m.grossSales*100)}% of gross) is eroding your margins substantially.`, severity:'medium', potential_saving: Math.round(m.totalDiscounts*0.4) });
+  if ((APP.categories['software']?.amount||0) > 200) out.push({ title:'High software subscription spend', description:`${fmt(APP.categories['software'].amount)} in software subscriptions. Industry data suggests 30% of SaaS tools are unused.`, severity:'medium', potential_saving: Math.round(APP.categories['software'].amount*0.3) });
+  // Duplicate amount detection
+  const amtMap = {};
+  APP.spendStripped.forEach(r => {
+    const k = r.amount.toFixed(2);
+    amtMap[k] = (amtMap[k]||0) + 1;
+  });
+  for (const [amt, cnt] of Object.entries(amtMap)) {
+    if (cnt >= 3 && parseFloat(amt) < 100 && parseFloat(amt) > 5) {
+      out.push({ title:'Possible duplicate subscription', description:`€${amt} appears ${cnt} times — may be a recurring charge worth reviewing.`, severity:'low', potential_saving: parseFloat(amt) });
+      break; // only flag first
+    }
+  }
+  return out;
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER RESULTS
+// ═══════════════════════════════════════════════════════
+function renderResults(m) {
+  renderHeader(m);
+  renderStackedBar(m);
+  renderChannels(m);
+  renderTopServices(m);
+  renderPL(m);
+  renderExpenses(m);
+  renderActions(m);
+  renderGrowthTab(m);
+  renderReportTab(m);
+  renderAnomaliesTab(m);
+  initTabs();
+  initReset();
+}
+
+// ── Header metrics ──
+function renderHeader(m) {
+  animCounter('mRevenue',   m.grossSales,    true);
+  animCounter('mExpenses',  m.totalExpenses, true);
+  animCounter('mProfit',    m.netProfit,     true);
+  animCounter('mHealth',    m.healthScore,   false);
+
+  document.getElementById('mRevenuesSub').textContent  = `${m.txCount} transactions`;
+  document.getElementById('mExpensesSub').textContent  = `${Object.keys(APP.categories).length} categories`;
+  document.getElementById('mProfitSub').textContent    = `${Math.round(m.profitMargin)}% margin · ${fmt(m.profitPerDay)}/day`;
+  document.getElementById('mHealthSub').textContent    = `${m.healthLabel} · better than ~${m.healthScore}% of businesses`;
+
+  const hEl = document.getElementById('mHealth');
+  hEl.className = 'res-metric-value ' + (m.healthScore >= 70 ? 'gold' : m.healthScore >= 45 ? 'amber' : 'danger');
+
+  const profEl = document.getElementById('mProfit');
+  profEl.className = 'res-metric-value ' + (m.netProfit >= 0 ? 'success' : 'danger');
+
+  const aiEl = document.getElementById('aiModeBadge');
+  if (APP.analysisMode === 'ai') { aiEl.textContent = '🤖 AI Mode'; aiEl.className = 'ai-mode-badge ai'; }
+  else { aiEl.textContent = '◆ Standard'; aiEl.className = 'ai-mode-badge std'; }
+  document.getElementById('anomalyBadge').textContent = APP.anomalies.length ? `(${APP.anomalies.length})` : '';
+}
+
+// ═══════════════════════════════════════════════════════
+// STACKED BAR — M3
+// ═══════════════════════════════════════════════════════
+function renderStackedBar(m) {
+  const gross = m.grossSales || 1;
+  const seg = [
+    { label:'You Kept', amount: m.netProfit,      color:'#c9a84c', pct: Math.max(0,(m.netProfit/gross)*100) },
+    { label:'Expenses', amount: m.totalExpenses,  color:'#e07070', pct: Math.max(0,(m.totalExpenses/gross)*100) },
+    { label:'Discounts',amount: m.totalDiscounts, color:'#e8b4b8', pct: Math.max(0,(m.totalDiscounts/gross)*100) },
+    { label:'Refunds',  amount: m.totalRefunds,   color:'#f4a26d', pct: Math.max(0,(m.totalRefunds/gross)*100) },
+    { label:'Fees',     amount: m.totalFees,      color:'#c87464', pct: Math.max(0,(m.totalFees/gross)*100) },
+  ].filter(s => s.amount > 0);
+
+  const biggestLeak = seg.filter(s=>s.label!=='You Kept').sort((a,b)=>b.amount-a.amount)[0];
+  const optMargin   = Math.min(100, m.profitMargin + (m.recoverable/gross*100));
+
+  const html = `
+    <div class="section-title">Where every euro went</div>
+    <div style="position:relative;height:52px;border-radius:2px;overflow:hidden;display:flex;background:#e0dbd4;margin-bottom:14px;" id="stackedBar">
+      ${seg.map(s=>`
+        <div class="stacked-seg" data-label="${s.label}" data-amt="${s.amount}" data-pct="${s.pct.toFixed(1)}"
+          style="height:100%;background:${s.color};width:0%;transition:width 1s cubic-bezier(0.16,1,0.3,1);flex-shrink:0;position:relative;cursor:pointer;"
+          title="${s.label}: ${fmt(s.amount)} (${s.pct.toFixed(1)}%)">
+        </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;">
+      ${seg.map(s=>`<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink);">
+        <div style="width:10px;height:10px;border-radius:50%;background:${s.color};flex-shrink:0;"></div>
+        <span>${s.label}</span>
+        <span style="font-family:'DM Mono',monospace;color:var(--muted);font-size:11px;">${fmt(s.amount)} · ${s.pct.toFixed(0)}%</span>
+      </div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr;gap:8px;padding:20px;background:#f0ede8;border-left:3px solid var(--gold);">
+      <div style="font-size:14px;color:var(--ink);line-height:1.6;">For every €100 your business made, you kept <strong>€${Math.round(m.profitMargin)}</strong>.</div>
+      ${biggestLeak ? `<div style="font-size:14px;color:var(--ink);line-height:1.6;">Your biggest leak: <strong>${biggestLeak.label}</strong> at <strong>${biggestLeak.pct.toFixed(0)}%</strong> (${fmt(biggestLeak.amount)}).</div>` : ''}
+      ${m.recoverable > 0 ? `<div style="font-size:14px;color:var(--ink);line-height:1.6;">Recover your identified waste and you'd keep <strong>€${Math.round(optMargin)}</strong> of every €100.</div>` : ''}
+    </div>`;
+  document.getElementById('stackedBarSection').innerHTML = html;
+
+  // Animate segments
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.querySelectorAll('.stacked-seg').forEach(el => {
+      el.style.width = el.dataset.pct + '%';
+    });
+  }));
+}
+
+// ── Channels — M3 ──
+function renderChannels(m) {
+  const ch = m.channels || {};
+  const keys = Object.keys(ch);
+  if (keys.length < 2) { document.getElementById('channelSection').style.display='none'; return; }
+  document.getElementById('channelSection').style.display = 'block';
+
+  const cols = keys.map(k => {
+    const d = ch[k];
+    const feeEst = d.revenue * 0.20 * (/market|online|platform/i.test(k) ? 1 : 0);
+    const net = d.revenue - feeEst;
+    const netPerBk = d.count > 0 ? net/d.count : 0;
+    return { name:k, revenue:d.revenue, fees:feeEst, net, netPerBk, count:d.count };
+  });
+  const best = cols.sort((a,b)=>b.net-a.net)[0];
+
+  document.getElementById('channelSection').innerHTML = `
+    <div class="section-title">Channel performance</div>
+    <div style="display:grid;grid-template-columns:repeat(${cols.length},1fr);gap:20px;">
+      ${cols.map(c=>`
+        <div style="padding:24px;border:1px solid ${c.name===best.name?'var(--gold)':'var(--border)'};background:${c.name===best.name?'rgba(201,168,76,0.04)':'white'};">
+          ${c.name===best.name?'<div style="font-family:\'DM Mono\',monospace;font-size:9px;letter-spacing:0.15em;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">★ Most Profitable</div>':''}
+          <div style="font-family:\'Playfair Display\',serif;font-size:18px;font-weight:400;margin-bottom:12px;">${c.name}</div>
+          <div style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted);margin-bottom:4px;">Revenue</div>
+          <div style="font-family:\'Playfair Display\',serif;font-size:22px;font-weight:700;margin-bottom:12px;">${fmt(c.revenue)}</div>
+          <div style="font-size:12px;color:var(--muted);">Fees: ${fmt(c.fees)}</div>
+          <div style="font-size:12px;color:var(--ink);font-weight:500;">Net per booking: ${fmt(c.netPerBk)}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ── Top services — M3 ──
+function renderTopServices(m) {
+  if (!m.topServices || m.topServices.length === 0) { document.getElementById('servicesSection').style.display='none'; return; }
+  document.getElementById('servicesSection').style.display = 'block';
+  const max = m.topServices[0].total;
+  document.getElementById('servicesSection').innerHTML = `
+    <div class="section-title">Top services by revenue</div>
+    ${m.topServices.map((s,i)=>`
+      <div style="display:grid;grid-template-columns:200px 1fr 120px 120px;align-items:center;gap:16px;margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHTML(s.name)}</div>
+        <div style="height:6px;background:var(--border);">
+          <div style="height:100%;background:var(--gold);width:${(s.total/max*100).toFixed(1)}%;transition:width 1s ease;"></div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;text-align:right;">${fmt(s.total)}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-align:right;">avg ${fmt(s.avgTx)}</div>
+      </div>`).join('')}`;
+}
+
+// ── P&L block — M3 ──
+function renderPL(m) {
+  const row = (label, val, sub, color) => `
+    <div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid rgba(224,219,212,0.45);">
+      <span style="font-size:13px;">${label}</span>
+      <div style="text-align:right;">
+        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;${color?'color:'+color+';':''}">${val}</div>
+        ${sub?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);">${sub}</div>`:''}
+      </div>
+    </div>`;
+  document.getElementById('plSection').innerHTML = `
+    <div class="section-title">P&L breakdown</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Revenue</div>
+        ${row('Gross Sales', fmt(m.grossSales))}
+        ${row('− Discounts', fmt(m.totalDiscounts), `${Math.round(m.totalDiscounts/Math.max(m.grossSales,1)*100)}% of gross`,'#e07070')}
+        ${row('− Refunds', fmt(m.totalRefunds),'','#e07070')}
+        ${row('− Platform Fees', fmt(m.totalFees), `${Math.round(m.totalFees/Math.max(m.grossSales,1)*100)}% of gross`,'#e07070')}
+        ${row('= Net Revenue', fmt(m.netRevenue),'','var(--gold)')}
+      </div>
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Expenses</div>
+        ${row('Total Expenses', fmt(m.totalExpenses))}
+        ${m.biggestExpCat ? row('Largest: '+m.biggestExpCat.label, fmt(m.biggestExpCat.amount), `${Math.round(m.biggestExpCat.amount/Math.max(m.totalExpenses,1)*100)}% of expenses`) : ''}
+        ${row('Uncategorised', fmt(m.uncatAmount), `${Math.round(m.uncatPct)}% of expenses`, m.uncatPct>15?'#e07070':'')}
+      </div>
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Profit</div>
+        ${row('Net Profit', fmt(m.netProfit),'', m.netProfit>=0?'var(--success)':'var(--danger)')}
+        ${row('Profit Margin', Math.round(m.profitMargin)+'%','')}
+        ${row('Per Day', fmt(m.profitPerDay),'avg')}
+        ${row('Recoverable', fmt(m.recoverable),'identified savings','var(--success)')}
+      </div>
+    </div>`;
+}
+
+// ── Expense category bars ──
+function renderExpenses(m) {
+  if (m.expSorted.length === 0) { document.getElementById('expenseSection').innerHTML=''; return; }
+  const max = m.expSorted[0].amount;
+  document.getElementById('expenseSection').innerHTML = `
+    <div class="section-title">Expense breakdown</div>
+    ${m.expSorted.map(c=>`
+      <div style="display:grid;grid-template-columns:180px 1fr 100px;align-items:center;gap:14px;margin-bottom:13px;">
+        <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.label}</div>
+        <div style="height:5px;background:var(--border);">
+          <div style="height:100%;background:${c.color};width:${(c.amount/max*100).toFixed(1)}%;transition:width 1.1s cubic-bezier(0.16,1,0.3,1);"></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'DM Mono',monospace;font-size:12px;">${fmt(c.amount)}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);">${Math.round(c.amount/m.totalExpenses*100)}%</div>
+        </div>
+      </div>`).join('')}`;
+}
+
+// ── Action plan ──
+function renderActions(m) {
+  const opps = APP.opportunities || [];
+  if (opps.length === 0) { document.getElementById('actionsSection').innerHTML=''; return; }
+  const diffCls = { low:'diff-quick', medium:'diff-med', high:'diff-hard' };
+  const diffStyle = { low:'background:#e8f5ee;color:#2d6a4f;', medium:'background:#fef9e7;color:#7a5e00;', high:'background:#eef2ff;color:#3451b2;' };
+  document.getElementById('actionsSection').innerHTML = `
+    <div class="section-title">Action plan</div>
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 0;border-bottom:1px solid var(--border);font-weight:400;">Effort</th>
+          <th style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 0;border-bottom:1px solid var(--border);font-weight:400;">Opportunity</th>
+          <th style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);text-align:right;padding:8px 0;border-bottom:1px solid var(--border);font-weight:400;">Monthly Uplift</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${opps.map(o=>`
+          <tr>
+            <td style="padding:13px 0;border-bottom:1px solid rgba(224,219,212,0.4);vertical-align:top;">
+              <span style="font-family:'DM Mono',monospace;font-size:9px;padding:3px 7px;border-radius:2px;${diffStyle[o.difficulty]||diffStyle.medium}">${o.difficulty}</span>
+            </td>
+            <td style="padding:13px 0 13px 12px;border-bottom:1px solid rgba(224,219,212,0.4);vertical-align:top;">
+              <div style="font-size:13px;font-weight:500;margin-bottom:3px;">${escHTML(o.title)}</div>
+              <div style="font-size:12px;color:var(--muted);">${escHTML(o.detail||'')} · ${escHTML(o.timeline||'')}</div>
+            </td>
+            <td style="padding:13px 0;border-bottom:1px solid rgba(224,219,212,0.4);vertical-align:top;text-align:right;font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--success);">+${fmt(o.monthly_uplift)}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// GROWTH ENGINE TAB — M4
+// ═══════════════════════════════════════════════════════
+function renderGrowthTab(m) {
+  const om = APP.oneMoveData;
+  const opps = APP.opportunities || [];
+  const recoverable = m.recoverable;
+  const currentMonthlyProfit = m.netProfit;
+  const optimisedMonthly = currentMonthlyProfit + recoverable;
+
+  // 12-month projection data
+  const months = Array.from({length:13},(_,i)=>i);
+  const currData  = months.map(i => Math.round(currentMonthlyProfit * Math.pow(1.02, i)));
+  const optData   = months.map(i => Math.round(optimisedMonthly * Math.pow(1.008*(1+i*0.005), i)));
+  const labels    = months.map(i => { const d=new Date(); d.setMonth(d.getMonth()+i); return d.toLocaleDateString('en-IE',{month:'short',year:'2-digit'}); });
+  const currEnd   = currData[12];
+  const optEnd    = optData[12];
+  const gap       = optEnd - currEnd;
+
+  let html = ``;
+  // ONE MOVE
+  if (om) {
+    html += `
+      <div style="margin-bottom:48px;">
+        <div class="section-title">The one move</div>
+        <div style="border:1px solid var(--gold);padding:32px;position:relative;background:rgba(201,168,76,0.025);">
+          <div style="position:absolute;top:20px;right:20px;width:10px;height:10px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite;"></div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">Highest ROI action</div>
+          <div style="font-family:'Playfair Display',serif;font-size:26px;font-weight:400;margin-bottom:16px;">${escHTML(om.headline)}</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px;">${escHTML(om.reasoning||'')}</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;">
+            ${[['Investment',fmt(om.investment)],['Monthly Uplift','+'+fmt(om.monthly_uplift)],['ROI',om.roi_pct>=999?'∞':Math.round(om.roi_pct)+'%'],['Payback',(om.payback_days||0)===0?'Immediate':om.payback_days+'d']].map(([l,v])=>`
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">${l}</div>
+                <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--gold);">${v}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // REINVESTMENT TABLE
+  html += `
+    <div style="margin-bottom:48px;">
+      <div class="section-title">Reinvestment opportunities</div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr>
+            ${['Opportunity','Detail','Investment','Monthly Uplift','ROI','Timeline'].map(h=>`<th style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 0;border-bottom:1px solid var(--border);font-weight:400;">${h}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${opps.map(o=>{
+            const roiColor = o.roi_pct >= 200 ? 'background:#e8f5ee;color:#2d6a4f;' : o.roi_pct >= 50 ? 'background:#fef9e7;color:#7a5e00;' : 'background:#eef2ff;color:#3451b2;';
+            const roiLabel = o.roi_pct >= 9999 ? '∞ High' : o.roi_pct >= 200 ? 'High' : o.roi_pct >= 50 ? 'Medium' : 'Low';
+            return `<tr>
+              <td style="padding:12px 0;border-bottom:1px solid rgba(224,219,212,0.4);font-size:13px;font-weight:500;">${escHTML(o.title)}</td>
+              <td style="padding:12px 8px;border-bottom:1px solid rgba(224,219,212,0.4);font-size:12px;color:var(--muted);">${escHTML(o.detail||'')}</td>
+              <td style="padding:12px 8px;border-bottom:1px solid rgba(224,219,212,0.4);font-family:'DM Mono',monospace;font-size:12px;">${fmt(o.investment)}</td>
+              <td style="padding:12px 8px;border-bottom:1px solid rgba(224,219,212,0.4);font-family:'DM Mono',monospace;font-size:12px;color:var(--success);">+${fmt(o.monthly_uplift)}</td>
+              <td style="padding:12px 8px;border-bottom:1px solid rgba(224,219,212,0.4);"><span style="font-family:'DM Mono',monospace;font-size:9px;padding:3px 7px;border-radius:2px;${roiColor}">${roiLabel}</span></td>
+              <td style="padding:12px 0;border-bottom:1px solid rgba(224,219,212,0.4);font-size:12px;color:var(--muted);">${escHTML(o.timeline||'')}</td>
+            </tr>`;}).join('')}
+        </tbody>
+      </table>
+    </div>`;
+
+  // 12-MONTH CHART
+  html += `
+    <div>
+      <div class="section-title">12-month projection</div>
+      <div style="position:relative;height:260px;margin-bottom:24px;"><canvas id="projChart"></canvas></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;">
+        ${[['Current Year End',fmt(currEnd),'var(--danger)'],['Optimised Year End',fmt(optEnd),'var(--gold)'],['Opportunity Gap','+'+fmt(gap),'var(--success)']].map(([l,v,c])=>`
+          <div style="padding:20px;border:1px solid var(--border);background:white;">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">${l}</div>
+            <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:${c};">${v}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  document.getElementById('growthBody').innerHTML = html;
+
+  // Render chart after DOM update
+  requestAnimationFrame(() => {
+    const ctx = document.getElementById('projChart');
+    if (!ctx) return;
+    if (APP.charts.proj) { APP.charts.proj.destroy(); }
+    APP.charts.proj = new Chart(ctx, {
+      type:'line',
+      data:{
+        labels,
+        datasets:[
+          { label:'Current trajectory', data:currData, borderColor:'#e07070', backgroundColor:'rgba(224,112,112,0.07)', borderWidth:2, pointRadius:3, fill:true, tension:0.3 },
+          { label:'Optimised trajectory', data:optData, borderColor:'#c9a84c', backgroundColor:'rgba(201,168,76,0.07)', borderWidth:2, pointRadius:3, fill:true, tension:0.3 }
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ labels:{ color:'#8a8580', font:{ family:'DM Sans', size:12 } } }, tooltip:{ callbacks:{ label: c=>' '+fmt(c.parsed.y) } } },
+        scales:{
+          x:{ grid:{ color:'rgba(10,10,15,0.05)' }, ticks:{ color:'#8a8580', font:{ family:'DM Mono', size:10 } } },
+          y:{ grid:{ color:'rgba(10,10,15,0.05)' }, ticks:{ color:'#8a8580', font:{ family:'DM Mono', size:10 }, callback: v=>fmt(v) } }
+        }
+      }
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// AI REPORT TAB — M5
+// ═══════════════════════════════════════════════════════
+function renderReportTab(m) {
+  const n = APP.narrative;
+  const isAI = APP.analysisMode === 'ai';
+  const sections = [
+    { label:'Executive Summary', key:'summary' },
+    { label:'What\'s Working',   key:'working' },
+    { label:'Risk Factors',      key:'risks' },
+    { label:'90-Day Action Plan',key:'action_plan' }
+  ];
+  let html = `
+    <div style="margin-bottom:28px;">
+      <span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:5px 12px;border-radius:100px;${isAI?'color:var(--success);border:1px solid rgba(111,207,151,0.3);background:rgba(111,207,151,0.05);':'color:rgba(245,242,238,0.3);border:1px solid rgba(245,242,238,0.1);'}">
+        ${isAI ? '✦ AI-Generated Financial Autopsy' : '◆ Standard Analysis Report'}
+      </span>
+    </div>`;
+
+  if (n) {
+    sections.forEach((s,i) => {
+      if (!n[s.key]) return;
+      html += `
+        <div style="margin-bottom:40px;opacity:0;transform:translateY(10px);transition:opacity 0.5s ease ${i*0.1}s, transform 0.5s ease ${i*0.1}s;" class="rep-sec">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:12px;">
+            ${escHTML(s.label)}<div style="flex:1;height:1px;background:rgba(201,168,76,0.2);"></div>
+          </div>
+          <p style="font-size:15px;line-height:1.8;color:rgba(10,10,15,0.7);">${escHTML(n[s.key])}</p>
+        </div>`;
+    });
+  }
+  html += `<button onclick="copyReport()" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;padding:8px 18px;cursor:pointer;border-radius:2px;transition:all 0.2s;margin-top:8px;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)';" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)';">Copy full report</button>`;
+  document.getElementById('reportBody').innerHTML = html;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.querySelectorAll('.rep-sec').forEach(el => { el.style.opacity='1'; el.style.transform='translateY(0)'; });
+  }));
+}
+window.copyReport = function() {
+  const n = APP.narrative;
+  if (!n) return;
+  const text = Object.values(n).join('\n\n');
+  navigator.clipboard.writeText(text).catch(()=>{});
+};
+
+// ═══════════════════════════════════════════════════════
+// ANOMALIES TAB — M5
+// ═══════════════════════════════════════════════════════
+function renderAnomaliesTab(m) {
+  const anoms = APP.anomalies || [];
+  const sevColor = { high:'#e07070', medium:'#f2a93b', low:'var(--sage)' };
+  const sevBg    = { high:'rgba(224,112,112,0.08)', medium:'rgba(242,169,59,0.08)', low:'rgba(138,170,138,0.08)' };
+  let html = `<div class="section-title">Anomalies & flags</div>`;
+  if (anoms.length === 0) {
+    html += `<div style="padding:40px 0;text-align:center;color:var(--muted);font-style:italic;">No anomalies detected.</div>`;
+  } else {
+    html += anoms.map(a=>`
+      <div style="display:flex;gap:16px;padding:18px 0;border-bottom:1px solid rgba(224,219,212,0.4);">
+        <div style="flex-shrink:0;padding:3px 8px;border-radius:2px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;background:${sevBg[a.severity]||sevBg.low};color:${sevColor[a.severity]||sevColor.low};height:fit-content;margin-top:2px;">${a.severity}</div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:500;margin-bottom:4px;">${escHTML(a.title)}</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6;">${escHTML(a.description)}</div>
+          ${a.potential_saving > 0 ? `<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--success);margin-top:6px;">Potential saving: ${fmt(a.potential_saving)}/mo</div>` : ''}
+        </div>
+      </div>`).join('');
+  }
+  document.getElementById('anomalyBody').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+// TABS + RESET
+// ═══════════════════════════════════════════════════════
+function initTabs() {
+  document.querySelectorAll('.res-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.res-tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById('tab-'+t.dataset.tab).classList.add('active');
+    });
+  });
+}
+
+function initReset() {
+  document.getElementById('btnReset').addEventListener('click', () => {
+    APP.salesFile=null; APP.spendFile=null; APP.salesRaw=null; APP.spendRaw=null;
+    APP.salesStripped=[]; APP.spendStripped=[]; APP.metrics={}; APP.categories={};
+    APP.actions=[]; APP.anomalies=[]; APP.narrative=null; APP.oneMoveData=null;
+    APP.opportunities=[];
+    document.getElementById('salesQueued').classList.remove('visible');
+    document.getElementById('spendQueued').classList.remove('visible');
+    document.getElementById('btnRun').classList.remove('visible');
+    Object.values(APP.charts).forEach(c => { try { c.destroy(); } catch(e){} });
+    APP.charts = {};
+    document.querySelectorAll('.res-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('[data-tab="overview"]').classList.add('active');
+    document.getElementById('tab-overview').classList.add('active');
+    showPage('page-upload');
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════
+function fmt(n) { return '€' + Math.round(n||0).toLocaleString('en-IE'); }
+function fmtBytes(b) {
+  if (b<1024) return b+' B';
+  if (b<1048576) return (b/1024).toFixed(1)+' KB';
+  return (b/1048576).toFixed(1)+' MB';
+}
+function escHTML(s) { const d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
+function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
+
+function animCounter(elId, target, isCurrency) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const dur = 900, start = performance.now();
+  const update = now => {
+    const p = Math.min((now-start)/dur, 1);
+    const e = 1-Math.pow(1-p,3);
+    const v = target * e;
+    el.textContent = isCurrency ? fmt(v) : Math.round(v).toString();
+    if (p < 1) requestAnimationFrame(update);
+    else el.textContent = isCurrency ? fmt(target) : Math.round(target).toString();
+  };
+  requestAnimationFrame(update);
+}
+</script>
+</body>
+</html>
