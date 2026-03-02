@@ -1086,6 +1086,8 @@ function calculatePL() {
     m.totalExpenses = 0; m.uncatAmount = 0; m.uncatPct = 0;
     m.biggestExpCat = null; m.expSorted = [];
     APP.categories = {};
+    // Ensure monthlyData is initialized if not already set
+    if (!m.monthlyData) m.monthlyData = {};
   }
 
   // PROFIT
@@ -1367,15 +1369,21 @@ function detectAnomaliesRules(m) {
     }
   }
   // Revenue volatility detection
-  if (Object.keys(m.monthlyData).length >= 3) {
-    const revenues = Object.values(m.monthlyData).map(d => d.revenue).filter(r => r > 0);
-    if (revenues.length >= 3) {
-      const minRev = Math.min(...revenues);
-      const maxRev = Math.max(...revenues);
-      const variance = minRev > 0 ? ((maxRev - minRev) / minRev * 100) : 0;
-      if (variance > 100) {
-        out.push({ title:'Revenue volatility', description:`Monthly revenue swings from ${fmt(minRev)} to ${fmt(maxRev)} — a ${Math.round(variance)}% variance. This unpredictability makes cash flow planning difficult.`, severity:'high', potential_saving: 0 });
+  if (m.monthlyData && Object.keys(m.monthlyData).length >= 3) {
+    try {
+      const revenues = Object.values(m.monthlyData).map(d => d && d.revenue ? d.revenue : 0).filter(r => r > 0);
+      if (revenues.length >= 3) {
+        const minRev = Math.min(...revenues);
+        const maxRev = Math.max(...revenues);
+        if (isFinite(minRev) && isFinite(maxRev) && minRev > 0) {
+          const variance = ((maxRev - minRev) / minRev * 100);
+          if (variance > 100 && isFinite(variance)) {
+            out.push({ title:'Revenue volatility', description:`Monthly revenue swings from ${fmt(minRev)} to ${fmt(maxRev)} — a ${Math.round(variance)}% variance. This unpredictability makes cash flow planning difficult.`, severity:'high', potential_saving: 0 });
+          }
+        }
       }
+    } catch(e) {
+      console.warn('Error detecting revenue volatility:', e);
     }
   }
   return out;
@@ -1424,8 +1432,13 @@ function renderHeader(m) {
   document.getElementById('mExpensesSub').textContent  = `${Object.keys(APP.categories).length} categories`;
   document.getElementById('mProfitSub').textContent    = `${Math.round(m.profitMargin)}% margin · ${fmt(m.profitPerDay)}/day`;
 
-  animCounter('mHiddenWaste', m.uncatAmount, true);
-  document.getElementById('mHiddenWasteSub').textContent = `${Math.round(m.uncatPct)}% of expenses`;
+  try {
+    animCounter('mHiddenWaste', m.uncatAmount || 0, true);
+    const sub = document.getElementById('mHiddenWasteSub');
+    if (sub) sub.textContent = `${Math.round(m.uncatPct || 0)}% of expenses`;
+  } catch(e) {
+    console.warn('Error rendering hidden waste metric:', e);
+  }
 
   const profEl = document.getElementById('mProfit');
   profEl.className = 'res-metric-value ' + (m.netProfit >= 0 ? 'success' : 'danger');
@@ -1540,41 +1553,49 @@ function renderTopServices(m) {
 
 // ── Monthly P&L table ──
 function renderMonthlyTable(m) {
-  if (!m.monthlyData || Object.keys(m.monthlyData).length === 0) {
-    document.getElementById('monthlyTableSection').style.display='none';
-    return;
+  try {
+    if (!m || !m.monthlyData || Object.keys(m.monthlyData).length === 0) {
+      const el = document.getElementById('monthlyTableSection');
+      if (el) el.style.display='none';
+      return;
+    }
+    const el = document.getElementById('monthlyTableSection');
+    if (!el) return;
+    el.style.display = 'block';
+    const months = Object.keys(m.monthlyData).sort();
+    const rows = months.map(month => {
+      const data = m.monthlyData[month];
+      if (!data) return '';
+      const profit = (data.revenue || 0) - (data.expenses || 0);
+      const margin = (data.revenue || 0) > 0 ? (profit / (data.revenue || 1) * 100) : 0;
+      return `
+        <tr style="border-bottom:1px solid rgba(224,219,212,0.25);">
+          <td style="padding:10px 12px;font-weight:500;font-size:13px;">${escHTML(month)}</td>
+          <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;font-size:13px;">${fmt(data.revenue || 0)}</td>
+          <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;font-size:13px;">${fmt(data.expenses || 0)}</td>
+          <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;font-size:13px;color:${profit>=0?'var(--success)':'var(--danger)'};">${fmt(profit)}</td>
+          <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;font-size:13px;color:${margin>=0?'var(--success)':'var(--danger)'};">${margin.toFixed(1)}%</td>
+        </tr>`;
+    }).join('');
+    el.innerHTML = `
+      <div class="section-title">Monthly breakdown</div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:1px solid rgba(224,219,212,0.5);">
+              <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(245,242,238,0.35);font-weight:500;">Month</th>
+              <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(245,242,238,0.35);font-weight:500;">Revenue</th>
+              <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(245,242,238,0.35);font-weight:500;">Expenses</th>
+              <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(245,242,238,0.35);font-weight:500;">Profit</th>
+              <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(245,242,238,0.35);font-weight:500;">Margin</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  } catch(e) {
+    console.warn('Error rendering monthly table:', e);
   }
-  document.getElementById('monthlyTableSection').style.display = 'block';
-  const months = Object.keys(m.monthlyData).sort();
-  const rows = months.map(month => {
-    const data = m.monthlyData[month];
-    const profit = data.revenue - data.expenses;
-    const margin = data.revenue > 0 ? (profit / data.revenue * 100) : 0;
-    return `
-      <tr style="border-bottom:1px solid rgba(224,219,212,0.25);">
-        <td style="padding:10px 12px;font-weight:500;font-size:13px;">${escHTML(month)}</td>
-        <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;font-size:13px;">${fmt(data.revenue)}</td>
-        <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;font-size:13px;">${fmt(data.expenses)}</td>
-        <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;font-size:13px;color:${profit>=0?'var(--success)':'var(--danger)'};">${fmt(profit)}</td>
-        <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;font-size:13px;color:${margin>=0?'var(--success)':'var(--danger)'};">${margin.toFixed(1)}%</td>
-      </tr>`;
-  }).join('');
-  document.getElementById('monthlyTableSection').innerHTML = `
-    <div class="section-title">Monthly breakdown</div>
-    <div style="overflow-x:auto;">
-      <table style="width:100%;border-collapse:collapse;">
-        <thead>
-          <tr style="border-bottom:1px solid rgba(224,219,212,0.5);">
-            <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(245,242,238,0.35);font-weight:500;">Month</th>
-            <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(245,242,238,0.35);font-weight:500;">Revenue</th>
-            <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(245,242,238,0.35);font-weight:500;">Expenses</th>
-            <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(245,242,238,0.35);font-weight:500;">Profit</th>
-            <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(245,242,238,0.35);font-weight:500;">Margin</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
 }
 
 // ── P&L block — M3 ──
