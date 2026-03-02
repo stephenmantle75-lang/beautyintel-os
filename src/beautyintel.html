@@ -1241,29 +1241,42 @@ document.getElementById('btnRun').addEventListener('click', async () => {
 // RUN FULL ANALYSIS — M2+
 // ═══════════════════════════════════════════════════════
 document.getElementById('btnRunAnalysis').addEventListener('click', async () => {
-  showLoading(); setLoadStep(2);
-  await sleep(300);
-
-  // Calculate P&L
-  const m = calculatePL();
-
-  // AI step — calls Cloudflare Worker proxy (key never touches the browser)
-  setLoadStep(3);
   try {
-    await runAIAnalysis(m);
-    APP.analysisMode = 'ai';
+    showLoading(); setLoadStep(2);
+    await sleep(300);
+
+    // Calculate P&L
+    console.log('Starting calculatePL...');
+    const m = calculatePL();
+    console.log('calculatePL completed, metrics:', m);
+
+    // AI step — calls Cloudflare Worker proxy (key never touches the browser)
+    setLoadStep(3);
+    try {
+      await runAIAnalysis(m);
+      APP.analysisMode = 'ai';
+      console.log('AI analysis completed');
+    } catch(e) {
+      console.warn('AI unavailable, using rule-based fallback:', e);
+      buildRuleBasedInsights(m);
+      APP.analysisMode = 'rules';
+      console.log('Rule-based analysis completed');
+    }
+
+    setLoadStep(4);
+    await sleep(300);
+    hideLoading();
+
+    console.log('About to render results...');
+    renderResults(m);
+    console.log('Results rendered, showing page...');
+    showPage('page-results');
+    console.log('Analysis complete!');
   } catch(e) {
-    console.warn('AI unavailable, using rule-based fallback:', e);
-    buildRuleBasedInsights(m);
-    APP.analysisMode = 'rules';
+    console.error('Fatal error in analysis:', e);
+    hideLoading();
+    alert('Error during analysis: ' + e.message);
   }
-
-  setLoadStep(4);
-  await sleep(300);
-  hideLoading();
-
-  renderResults(m);
-  showPage('page-results');
 });
 
 // ═══════════════════════════════════════════════════════
@@ -1393,22 +1406,27 @@ function detectAnomaliesRules(m) {
 // RENDER RESULTS
 // ═══════════════════════════════════════════════════════
 function renderResults(m) {
-  const pd = document.getElementById('printDate');
-  if (pd) pd.textContent = 'Generated: ' + new Date().toLocaleDateString('en-IE', { day:'numeric', month:'long', year:'numeric' });
-  renderHeader(m);
-  renderStackedBar(m);
-  renderChannels(m);
-  renderTopServices(m);
-  renderPL(m);
-  renderMonthlyTable(m);
-  renderTax(m);
-  renderExpenses(m);
-  renderActions(m);
-  renderGrowthTab(m);
-  renderReportTab(m);
-  renderAnomaliesTab(m);
-  initTabs();
-  initReset();
+  try {
+    const pd = document.getElementById('printDate');
+    if (pd) pd.textContent = 'Generated: ' + new Date().toLocaleDateString('en-IE', { day:'numeric', month:'long', year:'numeric' });
+    renderHeader(m);
+    renderStackedBar(m);
+    renderChannels(m);
+    renderTopServices(m);
+    renderPL(m);
+    try { renderMonthlyTable(m); } catch(e) { console.warn('Monthly table error:', e); }
+    renderTax(m);
+    renderExpenses(m);
+    renderActions(m);
+    renderGrowthTab(m);
+    renderReportTab(m);
+    renderAnomaliesTab(m);
+    initTabs();
+    initReset();
+  } catch(e) {
+    console.error('Critical error in renderResults:', e);
+    throw e;
+  }
 }
 
 // ── Header metrics ──
