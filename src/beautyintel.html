@@ -147,27 +147,7 @@ input[type="file"]{display:none;}
 .btn-run.visible{display:block;}
 .btn-run:hover{background:var(--gold-lt);transform:translateY(-1px);}
 
-/* ── API key row ── */
-.api-row{
-  margin-top:20px;width:100%;max-width:960px;
-  display:flex;align-items:center;gap:12px;
-  animation:fadeUp 0.55s ease 0.6s both;
-}
-.api-input{
-  flex:1;padding:11px 16px;
-  background:rgba(245,242,238,0.04);border:1px solid rgba(245,242,238,0.1);
-  border-radius:2px;color:var(--paper);font-family:'DM Mono',monospace;font-size:12px;
-  outline:none;transition:border-color 0.2s;
-}
-.api-input::placeholder{color:rgba(245,242,238,0.2);}
-.api-input:focus{border-color:var(--gold);}
-.api-badge{
-  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;
-  text-transform:uppercase;padding:6px 12px;border-radius:100px;
-  white-space:nowrap;flex-shrink:0;
-}
-.api-badge.on {color:var(--success);border:1px solid rgba(111,207,151,0.3);}
-.api-badge.off{color:rgba(245,242,238,0.3);border:1px solid rgba(245,242,238,0.1);}
+/* (api-row / api-input / api-badge removed — key handled server-side by Cloudflare Worker) */
 
 /* ═══════════════════════════════════════
    PRIVACY CONFIRMATION SCREEN
@@ -361,6 +341,7 @@ input[type="file"]{display:none;}
 .cta-headline em{font-style:italic;color:var(--gold);}
 .cta-sub{font-size:14px;color:rgba(245,242,238,0.38);max-width:360px;margin:0 auto 32px;font-weight:300;line-height:1.6;}
 .btn-cta{
+  display:inline-block;text-decoration:none;
   background:transparent;color:var(--gold);border:1px solid var(--gold);
   padding:15px 44px;font-family:'DM Sans',sans-serif;font-size:13px;
   font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
@@ -369,16 +350,164 @@ input[type="file"]{display:none;}
 .btn-cta:hover{background:var(--gold);color:var(--ink);}
 
 /* ═══════════════════════════════════════
-   PRINT
+   PRINT — ONLY VISIBLE IN PRINT HEADER
+═══════════════════════════════════════ */
+.print-header{display:none;}
+
+/* ═══════════════════════════════════════
+   PRINT STYLESHEET
 ═══════════════════════════════════════ */
 @media print{
-  .res-header,.res-tabs,.export-bar,.cta-section,
-  #page-upload,.loading-screen,.privacy-screen,
-  .btn-reset{display:none!important;}
-  #page-results{display:block!important;}
-  .tab-panel{display:block!important;}
-  body{background:white;color:black;}
-  .res-metrics-strip{background:white;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  /* ── Page setup ── */
+  @page{ margin:18mm 16mm; }
+
+  /* ── Hide everything except results ── */
+  #page-upload,
+  #page-privacy,
+  .loading-screen,
+  .res-header,
+  .res-tabs,
+  .export-bar,
+  .cta-section,
+  .btn-reset,
+  .res-header-right,
+  #tab-growth,
+  #tab-report,
+  #tab-anomalies,
+  .api-row{ display:none!important; }
+
+  /* ── Show results page regardless of active state ── */
+  #page-results{ display:block!important; }
+  .tab-panel#tab-overview{ display:block!important; }
+
+  /* ── Reset backgrounds and colours to white/black ── */
+  *{
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  body,
+  #page-results,
+  .overview-body,
+  .tab-panel{
+    background:#fff!important;
+    color:#0a0a0f!important;
+  }
+
+  /* ── Print header ── */
+  .print-header{
+    display:flex!important;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:0 0 12px;
+    border-bottom:2px solid #0a0a0f;
+    margin-bottom:24px;
+  }
+  .print-header-brand{
+    font-family:'DM Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:#0a0a0f;
+    font-weight:500;
+  }
+  .print-header-date{
+    font-family:'DM Mono',monospace;
+    font-size:10px;
+    color:#6b6460;
+    letter-spacing:0.08em;
+  }
+
+  /* ── Key metrics strip — rendered as a clean 4-col grid ── */
+  .res-metrics-strip{
+    display:grid!important;
+    grid-template-columns:repeat(4,1fr);
+    background:#fff!important;
+    border:1px solid #e0dbd4;
+    margin-bottom:32px;
+  }
+  .res-metric{
+    padding:16px 20px!important;
+    border-right:1px solid #e0dbd4;
+    background:#fff!important;
+  }
+  .res-metric:last-child{ border-right:none; }
+  .res-metric-label{
+    font-family:'DM Mono',monospace!important;
+    font-size:8px!important;
+    letter-spacing:0.16em!important;
+    text-transform:uppercase!important;
+    color:#8a8580!important;
+    margin-bottom:6px!important;
+  }
+  .res-metric-value{
+    font-family:'Playfair Display',serif!important;
+    font-size:22px!important;
+    font-weight:700!important;
+    color:#0a0a0f!important;
+    line-height:1!important;
+  }
+  /* Keep semantic colour on the profit figure */
+  .res-metric-value.success{ color:#2d6a4f!important; }
+  .res-metric-value.danger{  color:#b44!important; }
+  .res-metric-value.gold{    color:#9a7a28!important; }
+  .res-metric-value.amber{   color:#8a5e00!important; }
+  .res-metric-sub{
+    font-size:10px!important;
+    color:#8a8580!important;
+    margin-top:4px!important;
+  }
+
+  /* ── Section titles ── */
+  .section-title{
+    color:#8a8580!important;
+    border-color:#e0dbd4!important;
+  }
+  .section-title::after{ background:#e0dbd4!important; }
+
+  /* ── Prevent sections splitting across pages ── */
+  #stackedBarSection,
+  #channelSection,
+  #servicesSection,
+  #plSection,
+  #taxSection,
+  #expenseSection,
+  #actionsSection{ break-inside:avoid; page-break-inside:avoid; }
+
+  /* ── Hide the Chart.js canvas; show static opportunity gap instead ── */
+  #projChart{ display:none!important; }
+  .print-proj-summary{ display:block!important; }
+
+  /* ── Tax section print adjustments ── */
+  #taxSection [style*="background:rgba(201,168,76"]{
+    background:#faf8f0!important;
+    border-color:#d4b96e!important;
+  }
+  #taxSection [style*="font-size:42px"]{
+    color:#9a7a28!important;
+  }
+
+  /* ── Gold colour override for print legibility ── */
+  [style*="color:var(--gold)"],
+  [style*="color:#c9a84c"]{ color:#9a7a28!important; }
+  [style*="background:var(--gold)"],
+  [style*="background:#c9a84c"]{ background:#d4b96e!important; }
+
+  /* ── Stacked bar — keep colours but print-safe ── */
+  #stackedBarSection [style*="background:#c9a84c"]{ background:#d4b96e!important; }
+
+  /* ── Action plan table ── */
+  #actionsSection table{ border-collapse:collapse; }
+  #actionsSection th,
+  #actionsSection td{ color:#0a0a0f!important; }
+
+  /* ── P&L block ── */
+  #plSection [style*="background:#f0ede8"]{ background:#f9f8f6!important; }
+
+  /* ── Expense bars ── */
+  #expenseSection [style*="background:var(--border)"]{ background:#e0dbd4!important; }
+
+  /* ── Remove box shadows / blurs ── */
+  *{ box-shadow:none!important; text-shadow:none!important; }
 }
 
 /* ═══════════════════════════════════════
@@ -455,12 +584,6 @@ input[type="file"]{display:none;}
       <span class="lock">🔒</span>Private identifiers are automatically removed before anything is analysed
     </p>
 
-    <!-- API key -->
-    <div class="api-row">
-      <input type="password" class="api-input" id="apiKeyInput" placeholder="Anthropic API key (optional — enables AI analysis)" autocomplete="off">
-      <span class="api-badge off" id="apiBadge">◆ Standard Mode</span>
-    </div>
-
     <!-- Run button -->
     <button class="btn-run" id="btnRun">Continue to Privacy Review →</button>
   </div>
@@ -497,6 +620,12 @@ input[type="file"]{display:none;}
 <!-- ═══════════════════ PAGE: RESULTS ═══════════════════ -->
 <section class="page" id="page-results">
 
+  <!-- Print-only header (hidden on screen) -->
+  <div class="print-header">
+    <div class="print-header-brand">BeautyIntel OS — Financial Summary</div>
+    <div class="print-header-date" id="printDate"></div>
+  </div>
+
   <!-- Header with metrics -->
   <div class="res-header">
     <div class="res-header-brand">BeautyIntel OS</div>
@@ -524,7 +653,7 @@ input[type="file"]{display:none;}
     </div>
     <div class="res-header-right">
       <span class="privacy-badge">🔒 Privacy Mode</span>
-      <span class="ai-mode-badge std" id="aiModeBadge">◆ Standard</span>
+      <span class="ai-mode-badge ai" id="aiModeBadge">✦ AI Analysis</span>
       <button class="btn-reset" id="btnReset">↩ New Analysis</button>
     </div>
   </div>
@@ -553,6 +682,8 @@ input[type="file"]{display:none;}
       <div id="servicesSection" style="display:none;margin-bottom:48px;"></div>
       <!-- P&L Breakdown -->
       <div id="plSection" style="margin-bottom:48px;"></div>
+      <!-- Tax Estimate -->
+      <div id="taxSection" style="margin-bottom:48px;"></div>
       <!-- Expense breakdown -->
       <div id="expenseSection" style="margin-bottom:48px;"></div>
       <!-- Donut + actions -->
@@ -580,7 +711,7 @@ input[type="file"]{display:none;}
     <div class="cta-eyebrow">Next step</div>
     <h2 class="cta-headline">Turn this data into <em>profit</em>.</h2>
     <p class="cta-sub">15 minutes. Your numbers. A strategy built specifically for your business.</p>
-    <button class="btn-cta" onclick="alert('Connect your Calendly here')">Book Free Strategy Call</button>
+    <a class="btn-cta" href="mailto:hello@beautyintel.io?subject=I%20want%20early%20access%20to%20BeautyIntel%20OS&body=Hi%2C%20I%27d%20like%20to%20join%20the%20waitlist.">Book Free Strategy Call</a>
   </div>
 </section>
 
@@ -595,7 +726,7 @@ const APP = {
   privacyRemovedItems: [], privacyKeptItems: [],
   metrics: {}, categories: {}, actions: [], anomalies: [],
   narrative: null, oneMoveData: null,
-  analysisMode: 'rules',
+  analysisMode: 'ai', // always AI — key handled by Cloudflare Worker
   charts: {}
 };
 
@@ -609,26 +740,14 @@ function showPage(id) {
 }
 
 // ═══════════════════════════════════════════════════════
-// API KEY
+// API KEY MANAGEMENT
+// Stores API key in sessionStorage only (never persisted)
 // ═══════════════════════════════════════════════════════
-const apiInput = document.getElementById('apiKeyInput');
-const apiBadge = document.getElementById('apiBadge');
-apiInput.addEventListener('input', () => {
-  const v = apiInput.value.trim();
-  if (v.startsWith('sk-')) {
-    sessionStorage.setItem('BI_API_KEY', v);
-    APP.analysisMode = 'ai';
-    apiBadge.textContent = '🤖 AI Mode'; apiBadge.className = 'api-badge on';
-  } else {
-    sessionStorage.removeItem('BI_API_KEY');
-    APP.analysisMode = 'rules';
-    apiBadge.textContent = '◆ Standard Mode'; apiBadge.className = 'api-badge off';
-  }
-});
-(function initKey() {
-  const k = sessionStorage.getItem('BI_API_KEY');
-  if (k) { apiInput.value = k; APP.analysisMode = 'ai'; apiBadge.textContent = '🤖 AI Mode'; apiBadge.className = 'api-badge on'; }
-})();
+function getAPIKey() { return sessionStorage.getItem('BI_API_KEY'); }
+function setAPIKey(key) {
+  if (key) sessionStorage.setItem('BI_API_KEY', key);
+  else sessionStorage.removeItem('BI_API_KEY');
+}
 
 // ═══════════════════════════════════════════════════════
 // DRAG & DROP + FILE SELECTION
@@ -721,9 +840,19 @@ function splitLine(line) {
   const out = []; let cur = ''; let inQ = false;
   for (let i = 0; i < line.length; i++) {
     const c = line[i];
-    if (c === '"') { inQ = !inQ; }
-    else if (c === ',' && !inQ) { out.push(cur.trim()); cur = ''; }
-    else { cur += c; }
+    const next = line[i + 1];
+    // Handle escaped quotes: "" inside quoted field = literal "
+    if (c === '"' && next === '"' && inQ) {
+      cur += '"';
+      i++; // Skip next quote
+    } else if (c === '"') {
+      inQ = !inQ;
+    } else if (c === ',' && !inQ) {
+      out.push(cur.trim());
+      cur = '';
+    } else {
+      cur += c;
+    }
   }
   out.push(cur.trim());
   return out;
@@ -732,7 +861,7 @@ function splitLine(line) {
 function parseAmount(str) {
   if (!str) return 0;
   const n = parseFloat(String(str).replace(/[€£$,\s]/g,''));
-  return isNaN(n) ? 0 : Math.abs(n);
+  return isNaN(n) ? 0 : n;
 }
 
 function parseDate(str) {
@@ -935,12 +1064,36 @@ function calculatePL() {
   const useRevenue = m.netRevenue > 0 ? m.netRevenue : m.grossSales;
   m.netProfit    = useRevenue - m.totalExpenses;
   m.profitMargin = useRevenue > 0 ? (m.netProfit / useRevenue) * 100 : 0;
-  m.profitPerDay = m.netProfit / 30;
 
   // Recoverable (20% of uncategorised + 30% of software + 20% of platform fees from expenses)
   const softwareAmt = APP.categories['software']?.amount || 0;
   const platExpAmt  = APP.categories['platform']?.amount || 0;
   m.recoverable = Math.round(m.uncatAmount * 0.2 + softwareAmt * 0.3 + platExpAmt * 0.2);
+
+  // DATE RANGE — detect period covered by the data
+  const allDates = [
+    ...APP.salesStripped.map(r => r.date),
+    ...APP.spendStripped.map(r => r.date)
+  ].filter(d => d instanceof Date && !isNaN(d));
+  if (allDates.length > 1) {
+    const earliest = new Date(Math.min(...allDates));
+    const latest   = new Date(Math.max(...allDates));
+    const daySpan  = (latest - earliest) / (1000 * 60 * 60 * 24);
+    m.periodMonths = Math.max(1, Math.round(daySpan / 30.44));
+    m.periodDays   = Math.round(daySpan);
+    const fmtDate  = d => d.toLocaleDateString('en-IE', { day:'numeric', month:'short', year:'numeric' });
+    m.periodLabel  = `${fmtDate(earliest)} – ${fmtDate(latest)}`;
+  } else {
+    m.periodMonths = 1;
+    m.periodDays   = 30;
+    m.periodLabel  = 'this period';
+  }
+
+  // PROFIT PER DAY — now calculated after period is known
+  m.profitPerDay = m.periodDays > 0 ? m.netProfit / m.periodDays : m.netProfit / 30;
+
+  const annualiseFactor = 12 / m.periodMonths;
+  m.annualisedProfit = Math.max(0, m.netProfit * annualiseFactor);
 
   // HEALTH SCORE
   m.healthScore = calcHealthScore(m);
@@ -951,6 +1104,9 @@ function calculatePL() {
 }
 
 function calcHealthScore(m) {
+  // If no sales data, mark as incomplete
+  if (m.grossSales === 0) return null;
+
   let score = 0;
   // 1. Profit margin
   const pm = m.profitMargin;
@@ -1061,14 +1217,15 @@ document.getElementById('btnRunAnalysis').addEventListener('click', async () => 
   // Calculate P&L
   const m = calculatePL();
 
-  // AI step
+  // AI step — calls Cloudflare Worker proxy (key never touches the browser)
   setLoadStep(3);
-  const apiKey = sessionStorage.getItem('BI_API_KEY');
-  if (apiKey) {
-    try { await runAIAnalysis(apiKey, m); APP.analysisMode = 'ai'; }
-    catch(e) { console.warn('AI failed, falling back:', e); buildRuleBasedInsights(m); APP.analysisMode = 'rules'; }
-  } else {
+  try {
+    await runAIAnalysis(m);
+    APP.analysisMode = 'ai';
+  } catch(e) {
+    console.warn('AI unavailable, using rule-based fallback:', e);
     buildRuleBasedInsights(m);
+    APP.analysisMode = 'rules';
   }
 
   setLoadStep(4);
@@ -1082,7 +1239,10 @@ document.getElementById('btnRunAnalysis').addEventListener('click', async () => 
 // ═══════════════════════════════════════════════════════
 // AI ANALYSIS — M5
 // ═══════════════════════════════════════════════════════
-async function runAIAnalysis(apiKey, m) {
+async function runAIAnalysis(m) {
+  const apiKey = getAPIKey();
+  if (!apiKey) throw new Error('No API key configured');
+
   const salesSample = APP.salesStripped.slice(0,75).map(r => ({
     date: r.date?.toISOString().slice(0,10), service: r.service,
     gross: r.gross, net: r.net, channel: r.channel, discount: r.discount, fee: r.fee
@@ -1116,16 +1276,22 @@ async function runAIAnalysis(apiKey, m) {
       messages: [{ role: 'user', content: `Metrics: ${JSON.stringify(metricsPayload)}\n\nSales sample: ${JSON.stringify(salesSample)}\n\nSpend sample: ${JSON.stringify(spendSample)}\n\nRespond with JSON only.` }]
     })
   });
+
   if (!resp.ok) throw new Error(`API ${resp.status}`);
-  const data = await resp.json();
-  let txt = data.content[0].text;
-  const jm = txt.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (jm) txt = jm[1];
-  const ai = JSON.parse(txt);
-  APP.narrative  = ai.narrative;
-  APP.oneMoveData= ai.one_move;
-  APP.opportunities = ai.opportunities || [];
-  APP.anomalies  = ai.anomalies || [];
+
+  try {
+    const data = await resp.json();
+    let txt = data.content[0].text;
+    const jm = txt.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jm) txt = jm[1];
+    const ai = JSON.parse(txt);
+    APP.narrative     = ai.narrative;
+    APP.oneMoveData   = ai.one_move;
+    APP.opportunities = ai.opportunities || [];
+    APP.anomalies     = ai.anomalies || [];
+  } catch (e) {
+    throw new Error(`AI response was incomplete — please try again (${e.message})`);
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1135,7 +1301,7 @@ function buildRuleBasedInsights(m) {
   APP.narrative = {
     summary: `Your business analysed ${m.txCount} transactions with gross sales of ${fmt(m.grossSales)}. After expenses of ${fmt(m.totalExpenses)}, your net profit stands at ${fmt(m.netProfit)} — a ${Math.round(m.profitMargin)}% margin. Your health score of ${m.healthScore}/100 places you in the "${m.healthLabel}" category.`,
     working: `${m.topServices?.length > 0 ? `Your top service is "${m.topServices[0]?.name}" generating ${fmt(m.topServices[0]?.total)}. ` : ''}Your average transaction value is ${fmt(m.avgTransValue)}.`,
-    risks: `${m.uncatPct > 10 ? `${Math.round(m.uncatPct)}% of expenses (${fmt(m.uncatAmount)}) are uncategorised — a blind spot that hides waste. ` : ''}${m.totalFees > m.grossSales * 0.1 ? `Platform fees at ${Math.round(m.totalFees/m.grossSales*100)}% of revenue are above the 10% threshold. ` : ''}${m.totalDiscounts > m.grossSales * 0.08 ? `Discounts at ${Math.round(m.totalDiscounts/m.grossSales*100)}% of gross sales are eroding your margins. ` : ''}Connect an API key for a full AI-powered risk diagnosis.`,
+    risks: `${m.uncatPct > 10 ? `${Math.round(m.uncatPct)}% of expenses (${fmt(m.uncatAmount)}) are uncategorised — a blind spot that hides waste. ` : ''}${m.totalFees > m.grossSales * 0.1 ? `Platform fees at ${Math.round(m.totalFees/m.grossSales*100)}% of revenue are above the 10% threshold. ` : ''}${m.totalDiscounts > m.grossSales * 0.08 ? `Discounts at ${Math.round(m.totalDiscounts/m.grossSales*100)}% of gross sales are eroding your margins. ` : ''}Enable AI analysis for a personalised risk diagnosis.`,
     action_plan: `Priority 1: Audit your ${fmt(m.uncatAmount)} in uncategorised spend — identify and eliminate waste. Priority 2: Reduce platform dependency by shifting 20% of bookings to direct. Priority 3: Review subscriptions — industry average shows 30% go unused. Estimated monthly recovery: ${fmt(m.recoverable)}.`
   };
   // Rule-based one move
@@ -1179,11 +1345,14 @@ function detectAnomaliesRules(m) {
 // RENDER RESULTS
 // ═══════════════════════════════════════════════════════
 function renderResults(m) {
+  const pd = document.getElementById('printDate');
+  if (pd) pd.textContent = 'Generated: ' + new Date().toLocaleDateString('en-IE', { day:'numeric', month:'long', year:'numeric' });
   renderHeader(m);
   renderStackedBar(m);
   renderChannels(m);
   renderTopServices(m);
   renderPL(m);
+  renderTax(m);
   renderExpenses(m);
   renderActions(m);
   renderGrowthTab(m);
@@ -1198,22 +1367,28 @@ function renderHeader(m) {
   animCounter('mRevenue',   m.grossSales,    true);
   animCounter('mExpenses',  m.totalExpenses, true);
   animCounter('mProfit',    m.netProfit,     true);
-  animCounter('mHealth',    m.healthScore,   false);
+
+  const hEl = document.getElementById('mHealth');
+  if (m.healthScore === null) {
+    hEl.textContent = '—';
+    hEl.className = 'res-metric-value muted';
+    document.getElementById('mHealthSub').textContent = 'Upload a sales CSV to get your full health score';
+  } else {
+    animCounter('mHealth', m.healthScore, false);
+    document.getElementById('mHealthSub').textContent = `${m.healthLabel} · better than ~${m.healthScore}% of businesses`;
+    hEl.className = 'res-metric-value ' + (m.healthScore >= 70 ? 'gold' : m.healthScore >= 45 ? 'amber' : 'danger');
+  }
 
   document.getElementById('mRevenuesSub').textContent  = `${m.txCount} transactions`;
   document.getElementById('mExpensesSub').textContent  = `${Object.keys(APP.categories).length} categories`;
   document.getElementById('mProfitSub').textContent    = `${Math.round(m.profitMargin)}% margin · ${fmt(m.profitPerDay)}/day`;
-  document.getElementById('mHealthSub').textContent    = `${m.healthLabel} · better than ~${m.healthScore}% of businesses`;
-
-  const hEl = document.getElementById('mHealth');
-  hEl.className = 'res-metric-value ' + (m.healthScore >= 70 ? 'gold' : m.healthScore >= 45 ? 'amber' : 'danger');
 
   const profEl = document.getElementById('mProfit');
   profEl.className = 'res-metric-value ' + (m.netProfit >= 0 ? 'success' : 'danger');
 
   const aiEl = document.getElementById('aiModeBadge');
-  if (APP.analysisMode === 'ai') { aiEl.textContent = '🤖 AI Mode'; aiEl.className = 'ai-mode-badge ai'; }
-  else { aiEl.textContent = '◆ Standard'; aiEl.className = 'ai-mode-badge std'; }
+  if (APP.analysisMode === 'ai') { aiEl.textContent = '✦ AI Analysis'; aiEl.className = 'ai-mode-badge ai'; }
+  else { aiEl.textContent = '◆ Summary Only'; aiEl.className = 'ai-mode-badge std'; }
   document.getElementById('anomalyBadge').textContent = APP.anomalies.length ? `(${APP.anomalies.length})` : '';
 }
 
@@ -1223,12 +1398,18 @@ function renderHeader(m) {
 function renderStackedBar(m) {
   const gross = m.grossSales || 1;
   const seg = [
-    { label:'You Kept', amount: m.netProfit,      color:'#c9a84c', pct: Math.max(0,(m.netProfit/gross)*100) },
-    { label:'Expenses', amount: m.totalExpenses,  color:'#e07070', pct: Math.max(0,(m.totalExpenses/gross)*100) },
-    { label:'Discounts',amount: m.totalDiscounts, color:'#e8b4b8', pct: Math.max(0,(m.totalDiscounts/gross)*100) },
-    { label:'Refunds',  amount: m.totalRefunds,   color:'#f4a26d', pct: Math.max(0,(m.totalRefunds/gross)*100) },
-    { label:'Fees',     amount: m.totalFees,      color:'#c87464', pct: Math.max(0,(m.totalFees/gross)*100) },
+    { label:'You Kept', amount: m.netProfit,      color:'#c9a84c' },
+    { label:'Expenses', amount: m.totalExpenses,  color:'#e07070' },
+    { label:'Discounts',amount: m.totalDiscounts, color:'#e8b4b8' },
+    { label:'Refunds',  amount: m.totalRefunds,   color:'#f4a26d' },
+    { label:'Fees',     amount: m.totalFees,      color:'#c87464' },
   ].filter(s => s.amount > 0);
+
+  // Calculate percentages so they sum to 100%
+  const totalAmount = seg.reduce((sum, s) => sum + s.amount, 0);
+  seg.forEach(s => {
+    s.pct = totalAmount > 0 ? (s.amount / totalAmount) * 100 : 0;
+  });
 
   const biggestLeak = seg.filter(s=>s.label!=='You Kept').sort((a,b)=>b.amount-a.amount)[0];
   const optMargin   = Math.min(100, m.profitMargin + (m.recoverable/gross*100));
@@ -1347,6 +1528,85 @@ function renderPL(m) {
         ${row('Per Day', fmt(m.profitPerDay),'avg')}
         ${row('Recoverable', fmt(m.recoverable),'identified savings','var(--success)')}
       </div>
+    </div>`;
+}
+
+// ── Irish Sole Trader Tax Estimate ──
+function renderTax(m) {
+  const el = document.getElementById('taxSection');
+  if (!el) return;
+
+  // Only render if we have a positive profit figure to work with
+  if (m.annualisedProfit <= 0) {
+    el.innerHTML = '';
+    return;
+  }
+
+  const income = m.annualisedProfit;
+  const isAnnualised = m.periodMonths < 11;
+
+  // ── Income Tax (2024 bands, single person) ──
+  const itBand1 = Math.min(income, 42000) * 0.20;
+  const itBand2 = Math.max(0, income - 42000) * 0.40;
+  const itGross = itBand1 + itBand2;
+  const taxCredits = 3750; // standard + personal tax credits
+  const incomeTax = Math.max(0, itGross - taxCredits);
+
+  // ── USC (2024) ──
+  let usc = 0;
+  if (income >= 13000) {
+    usc += Math.min(income, 12012) * 0.005;
+    if (income > 12012) usc += (Math.min(income, 22920) - 12012) * 0.02;
+    if (income > 22920) usc += (Math.min(income, 70044) - 22920) * 0.04;
+    if (income > 70044) usc += (income - 70044) * 0.08;
+  }
+
+  // ── PRSI (Class S self-employed) ──
+  const prsi = income >= 5000 ? income * 0.04 : 0;
+
+  // ── Totals ──
+  const totalTax = incomeTax + usc + prsi;
+  const monthlySetAside = totalTax / 12;
+  const effectiveRate = income > 0 ? (totalTax / income) * 100 : 0;
+
+  const taxRow = (label, val, sub, color) => `
+    <div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid rgba(224,219,212,0.45);">
+      <span style="font-size:13px;">${label}</span>
+      <div style="text-align:right;">
+        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;${color?'color:'+color+';':''}">${val}</div>
+        ${sub ? `<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);">${sub}</div>` : ''}
+      </div>
+    </div>`;
+
+  el.innerHTML = `
+    <div class="section-title">Tax estimate — 2024 Revenue rates</div>
+    ${isAnnualised ? `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:12px 16px;background:rgba(201,168,76,0.06);border-left:2px solid rgba(201,168,76,0.4);">
+      <span style="font-size:12px;color:var(--muted);line-height:1.5;">Your data covers <strong style="color:var(--ink);">${m.periodMonths} month${m.periodMonths !== 1 ? 's' : ''}</strong> (${m.periodLabel}). Annualised to <strong style="color:var(--ink);">${fmt(income)}</strong> for tax calculation purposes.</span>
+    </div>` : ''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Breakdown</div>
+        ${taxRow('Income Tax', fmt(incomeTax), `20% / 40% bands less €3,750 credits`, '#8a8580')}
+        ${taxRow('USC', fmt(usc), `0.5% – 8% bands`, '#8a8580')}
+        ${taxRow('PRSI', fmt(prsi), `4% Class S self-employed`, '#8a8580')}
+        ${taxRow('Total Tax', fmt(totalTax), `${Math.round(effectiveRate)}% effective rate`, 'var(--danger)')}
+      </div>
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">What to set aside</div>
+        <div style="padding:24px;background:rgba(201,168,76,0.04);border:1px solid rgba(201,168,76,0.2);margin-bottom:16px;">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Monthly set-aside</div>
+          <div style="font-family:'Playfair Display',serif;font-size:42px;font-weight:700;color:var(--gold);line-height:1;">${fmt(monthlySetAside)}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:8px;">per month into a separate account</div>
+        </div>
+        <div style="padding:14px 16px;background:rgba(245,242,238,0.03);border:1px solid rgba(245,242,238,0.08);">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Annual tax bill</div>
+          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--danger);">${fmt(totalTax)}</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:16px;font-size:12px;color:rgba(10,10,15,0.38);line-height:1.6;padding-top:12px;border-top:1px solid rgba(224,219,212,0.4);">
+      Estimate only — based on standard credits, no additional deductions. Assumes sole trader, single person, Irish tax resident, no other income sources. Speak to your accountant before filing.
     </div>`;
 }
 
@@ -1473,6 +1733,9 @@ function renderGrowthTab(m) {
     <div>
       <div class="section-title">12-month projection</div>
       <div style="position:relative;height:260px;margin-bottom:24px;"><canvas id="projChart"></canvas></div>
+      <div class="print-proj-summary" style="display:none;padding:16px;background:#f9f8f6;border:1px solid #e0dbd4;margin-bottom:24px;font-size:13px;color:#0a0a0f;">
+        Opportunity gap: applying identified savings of ${fmt(recoverable)}/month would increase monthly profit from ${fmt(currentMonthlyProfit)} to ${fmt(optimisedMonthly)} — a difference of <strong>${fmt(gap)}</strong> over 12 months.
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;">
         ${[['Current Year End',fmt(currEnd),'var(--danger)'],['Optimised Year End',fmt(optEnd),'var(--gold)'],['Opportunity Gap','+'+fmt(gap),'var(--success)']].map(([l,v,c])=>`
           <div style="padding:20px;border:1px solid var(--border);background:white;">
@@ -1525,9 +1788,14 @@ function renderReportTab(m) {
   let html = `
     <div style="margin-bottom:28px;">
       <span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:5px 12px;border-radius:100px;${isAI?'color:var(--success);border:1px solid rgba(111,207,151,0.3);background:rgba(111,207,151,0.05);':'color:rgba(245,242,238,0.3);border:1px solid rgba(245,242,238,0.1);'}">
-        ${isAI ? '✦ AI-Generated Financial Autopsy' : '◆ Standard Analysis Report'}
+        ${isAI ? '✦ AI-Generated Financial Autopsy' : '◆ Financial Summary'}
       </span>
-    </div>`;
+    </div>
+    ${!isAI ? `<div style="margin-bottom:28px;padding:16px 20px;background:rgba(245,242,238,0.03);border:1px solid rgba(245,242,238,0.1);border-radius:2px;">
+      <div style="font-size:13px;color:rgba(245,242,238,0.5);line-height:1.65;">
+        AI analysis is temporarily unavailable — your financial summary is still complete above.
+      </div>
+    </div>` : ''}`;
 
   if (n) {
     sections.forEach((s,i) => {
@@ -1582,6 +1850,8 @@ function renderAnomaliesTab(m) {
 // TABS + RESET
 // ═══════════════════════════════════════════════════════
 function initTabs() {
+  // Only initialize once to prevent duplicate listeners
+  if (document.querySelector('.res-tab[data-init="true"]')) return;
   document.querySelectorAll('.res-tab').forEach(t => {
     t.addEventListener('click', () => {
       document.querySelectorAll('.res-tab').forEach(x => x.classList.remove('active'));
@@ -1589,11 +1859,17 @@ function initTabs() {
       t.classList.add('active');
       document.getElementById('tab-'+t.dataset.tab).classList.add('active');
     });
+    t.setAttribute('data-init', 'true');
   });
 }
 
 function initReset() {
-  document.getElementById('btnReset').addEventListener('click', () => {
+  // Remove old listener and replace element to prevent stacking
+  const oldBtn = document.getElementById('btnReset');
+  const newBtn = oldBtn.cloneNode(true);
+  oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+
+  newBtn.addEventListener('click', () => {
     APP.salesFile=null; APP.spendFile=null; APP.salesRaw=null; APP.spendRaw=null;
     APP.salesStripped=[]; APP.spendStripped=[]; APP.metrics={}; APP.categories={};
     APP.actions=[]; APP.anomalies=[]; APP.narrative=null; APP.oneMoveData=null;
@@ -1614,7 +1890,7 @@ function initReset() {
 // ═══════════════════════════════════════════════════════
 // UTILITIES
 // ═══════════════════════════════════════════════════════
-function fmt(n) { return '€' + Math.round(n||0).toLocaleString('en-IE'); }
+function fmt(n) { return '€' + (Object.is(Math.round(n||0), -0) ? 0 : Math.round(n||0)).toLocaleString('en-IE'); }
 function fmtBytes(b) {
   if (b<1024) return b+' B';
   if (b<1048576) return (b/1024).toFixed(1)+' KB';
@@ -1626,6 +1902,11 @@ function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
 function animCounter(elId, target, isCurrency) {
   const el = document.getElementById(elId);
   if (!el) return;
+  // Skip animation for negative values and null — just set final value
+  if (target < 0 || target === null) {
+    el.textContent = isCurrency ? fmt(target) : (target === null ? '—' : Math.round(target).toString());
+    return;
+  }
   const dur = 900, start = performance.now();
   const update = now => {
     const p = Math.min((now-start)/dur, 1);
