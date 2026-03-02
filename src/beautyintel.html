@@ -1672,17 +1672,18 @@ function renderTax(m) {
       <strong>Disclaimer:</strong> Estimate only — based on standard tax credits and no additional deductions. Assumes sole trader, single person, Irish tax resident, no other income sources. VAT threshold: €75,000. Speak to your accountant or check <a href="https://revenue.ie" target="_blank" style="color:var(--gold);text-decoration:none;">Revenue.ie</a> before filing.
     </div>`;
 
-  // Add event listener for year selector
-  setTimeout(() => {
-    const yearSelect = document.getElementById('taxYearSelect');
-    if (yearSelect) {
-      yearSelect.addEventListener('change', (e) => {
-        APP.taxYear = parseInt(e.target.value);
-        renderTax(m); // Re-render with new year
-      });
-    }
-  }, 100);
 }
+
+// ── Tax year selector listener (single delegation, no stacking) ──
+document.addEventListener('change', (e) => {
+  if (e.target.id === 'taxYearSelect') {
+    APP.taxYear = parseInt(e.target.value);
+    const m = APP.metrics; // Re-render with current metrics
+    if (m && Object.keys(m).length > 0) {
+      renderTax(m);
+    }
+  }
+});
 
 // ── Expense category bars ──
 function renderExpenses(m) {
