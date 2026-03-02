@@ -1,0 +1,11 @@
+name            = "beautyintel-proxy"
+main            = "worker.js"
+compatibility_date = "2024-01-01"
+
+# ANTHROPIC_API_KEY is a secret — never put the value here.
+# Set it with: wrangler secret put ANTHROPIC_API_KEY
+# The worker reads it via env.ANTHROPIC_API_KEY at runtime.
+
+# Uncomment and fill in after first deploy to lock to your Workers subdomain:
+# [env.production]
+# routes = [{ pattern = "beautyintel-proxy.YOUR_SUBDOMAIN.workers.dev/*", zone_name = "workers.dev" }]

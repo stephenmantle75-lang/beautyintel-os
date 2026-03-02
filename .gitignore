@@ -41,6 +41,9 @@ coverage/
 *.bak
 *.orig
 
+# Binary files
+*.pptx
+
 # Logs
 *.log
 logs/
