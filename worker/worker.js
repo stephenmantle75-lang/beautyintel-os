@@ -40,6 +40,62 @@ function checkRateLimit(ip) {
 }
 
 // ---------------------------------------------------------------------------
+// Retry logic configuration
+// ---------------------------------------------------------------------------
+const MAX_RETRIES = 2;
+const RETRY_DELAYS_MS = [500, 1000]; // exponential backoff
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
+
+/**
+ * Call Anthropic API with automatic retry on transient errors.
+ * Retries on network errors and retryable HTTP statuses.
+ * Does not retry on 400, 401, 403 (permanent errors).
+ */
+async function callAnthropicWithRetry(payload, apiKey) {
+  let lastErr;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      const delayMs = RETRY_DELAYS_MS[attempt - 1];
+      console.warn(`Anthropic retry attempt ${attempt} after ${delayMs}ms`);
+      await new Promise(r => setTimeout(r, delayMs));
+    }
+
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      // If response is ok, return it regardless of attempt number
+      if (resp.ok) {
+        return resp;
+      }
+
+      // If status is retryable, save the error and continue the loop
+      if (RETRYABLE_STATUSES.has(resp.status)) {
+        const errText = await resp.text().catch(() => '');
+        lastErr = { type: 'http', status: resp.status, text: errText };
+        continue; // retry
+      }
+
+      // Non-retryable error (400, 401, 403, etc.) — return immediately
+      return resp;
+    } catch (err) {
+      lastErr = { type: 'network', message: err.message };
+      // Continue to next attempt
+    }
+  }
+
+  // Exhausted retries — throw the last error
+  throw lastErr;
+}
+
+// ---------------------------------------------------------------------------
 // CORS headers — allow any origin so beautyintel.html can call from any host
 // ---------------------------------------------------------------------------
 const CORS_HEADERS = {
@@ -103,25 +159,20 @@ export default {
       return corsResponse(JSON.stringify({ error: 'Service misconfigured. Contact support.' }), 500);
     }
 
-    // Forward to Anthropic
+    // Forward to Anthropic with retry logic
     let anthropicResp;
     try {
-      anthropicResp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type':        'application/json',
-          'x-api-key':           env.ANTHROPIC_API_KEY,
-          'anthropic-version':   '2023-06-01',
-        },
-        body: JSON.stringify({
+      anthropicResp = await callAnthropicWithRetry(
+        {
           model:      'claude-sonnet-4-6',
           max_tokens: 4096,
           system:     system || '',
           messages,
-        }),
-      });
+        },
+        env.ANTHROPIC_API_KEY
+      );
     } catch (err) {
-      console.error('Anthropic fetch error:', err);
+      console.error('Anthropic error after retries:', err);
       return corsResponse(JSON.stringify({ error: 'Could not reach AI service.' }), 502);
     }
 
@@ -135,8 +186,31 @@ export default {
       );
     }
 
+    // Parse and validate the response
+    let responseData;
+    try {
+      responseData = await anthropicResp.json();
+    } catch (err) {
+      console.error('Failed to parse Anthropic response as JSON:', err);
+      return corsResponse(JSON.stringify({ error: 'AI returned invalid response format.' }), 502);
+    }
+
+    // Validate response structure
+    if (
+      !responseData.content ||
+      !Array.isArray(responseData.content) ||
+      responseData.content.length === 0 ||
+      typeof responseData.content[0].text !== 'string' ||
+      responseData.content[0].text.trim() === ''
+    ) {
+      console.error(
+        'Unexpected Anthropic response shape:',
+        JSON.stringify(responseData).slice(0, 200)
+      );
+      return corsResponse(JSON.stringify({ error: 'AI returned an unexpected response format.' }), 502);
+    }
+
     // Stream the response back as-is with CORS headers
-    const responseData = await anthropicResp.json();
     return corsResponse(JSON.stringify(responseData), 200);
   },
 };

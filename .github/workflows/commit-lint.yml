@@ -1,0 +1,38 @@
+name: Commit Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check commit message format
+        run: |
+          # On PRs, check all commits in the PR. On push, check the last commit.
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            COMMITS=$(git log --format="%s" ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+          else
+            COMMITS=$(git log -1 --format="%s")
+          fi
+
+          PATTERN='^(fix|feat|refactor|docs|test)(\(.+\))?: .+'
+          FAILED=0
+          while IFS= read -r MSG; do
+            if [ -z "$MSG" ]; then continue; fi
+            if ! echo "$MSG" | grep -qE "$PATTERN"; then
+              echo "❌ FAIL: \"$MSG\""
+              echo "Expected format: <type>: <subject>"
+              echo "Valid types: fix, feat, refactor, docs, test"
+              echo "Example: fix: resolve profitPerDay calculation"
+              FAILED=1
+            fi
+          done <<< "$COMMITS"
+
+          exit $FAILED
