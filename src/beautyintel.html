@@ -1303,9 +1303,18 @@ document.getElementById('btnRunAnalysis').addEventListener('click', async () => 
 // ═══════════════════════════════════════════════════════
 // AI ANALYSIS — M5
 // ═══════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────
+// Worker URL configuration
+// TODO: Replace WORKER_URL with your deployed Cloudflare Worker URL
+// Format: https://beautyintel-proxy.{YOUR_SUBDOMAIN}.workers.dev
+// Deploy instructions: cd /projects/claude-code-beauty-tool/worker && npx wrangler deploy
+// ─────────────────────────────────────────────────────────
+const WORKER_URL = 'https://beautyintel-proxy.YOUR_SUBDOMAIN.workers.dev'; // TODO: Set after worker deployment
+
 async function runAIAnalysis(m) {
-  const apiKey = getAPIKey();
-  if (!apiKey) throw new Error('No API key configured');
+  if (!WORKER_URL.includes('beautyintel-proxy')) {
+    throw new Error('Worker URL not configured. Deploy worker first, then update WORKER_URL constant.');
+  }
 
   const salesSample = APP.salesStripped.slice(0,75).map(r => ({
     date: r.date?.toISOString().slice(0,10), service: r.service,
@@ -1327,16 +1336,13 @@ async function runAIAnalysis(m) {
 
   const sys = `You are a financial analyst specialising in beauty and wellness businesses in Ireland. Analyse this data and respond ONLY with valid JSON: { "narrative": { "summary": string, "working": string, "risks": string, "action_plan": string }, "one_move": { "headline": string, "investment": number, "monthly_uplift": number, "roi_pct": number, "payback_days": number, "reasoning": string }, "opportunities": [ { "title": string, "detail": string, "investment": number, "monthly_uplift": number, "roi_pct": number, "timeline": string, "difficulty": "low"|"medium"|"high" } ], "anomalies": [ { "title": string, "description": string, "severity": "high"|"medium"|"low", "potential_saving": number } ] }. Be specific with euro amounts. Use the actual numbers provided.`;
 
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+  const resp = await fetch(`${WORKER_URL}/api/analyze`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6', max_tokens: 4096, system: sys,
+      system: sys,
       messages: [{ role: 'user', content: `Metrics: ${JSON.stringify(metricsPayload)}\n\nSales sample: ${JSON.stringify(salesSample)}\n\nSpend sample: ${JSON.stringify(spendSample)}\n\nRespond with JSON only.` }]
     })
   });
