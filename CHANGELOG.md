@@ -14,6 +14,34 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Fix print-to-PDF layout (dark background, chart rendering)
 - Date range filter on uploaded data
 - Improved CSV error handling with user-facing messages
+- **Legal:** Add privacy policy, terms of service, and financial advice disclaimers
+- **Infrastructure:** Deploy Cloudflare Worker to production
+- **Market validation:** Conduct 5 customer discovery calls with salon owners
+
+---
+
+## [Audit] — 2026-03-07
+
+**ClaroSi Business Readiness Audit completed.** See `AUDIT.md` for full assessment.
+
+**Overall Score:** 5.0/10 (Pre-revenue)
+- ✅ Product capability: 7/10 (strong)
+- 🔴 Sales & acquisition: 3/10 (critical blocker)
+- 🔴 Legal & compliance: 4/10 (exposure)
+- ⚠️ Market validation: 0/10 (untested)
+
+**Key findings:**
+- Well-built product; zero customer traction
+- No customer acquisition strategy defined
+- Legal framework gaps (no privacy policy, disclaimers, or DPA)
+- Market fit unknown (1 user: founder)
+
+**Immediate actions:**
+1. Run 5 customer discovery calls (Week 1)
+2. Deploy Cloudflare Worker (Week 1)
+3. Add legal disclaimers to app (Week 1)
+4. Validate pricing with market (Week 2)
+5. Get first paying customer by Day 45
 
 ---
 

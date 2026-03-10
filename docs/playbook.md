@@ -1,5 +1,9 @@
 # 🚀 BEAUTYINTEL OS — 90-DAY LAUNCH PLAYBOOK
 
+> **⚠️ Context:** This playbook is aspirational. For current baseline and blockers, see [`AUDIT.md`](../AUDIT.md). Key gaps before execution: zero customers, no acquisition strategy, legal/compliance gaps. Start with Week 1 actions in the audit.
+
+---
+
 ## YOUR MISSION (IF YOU CHOOSE TO ACCEPT IT)
 
 You're not reading a business plan.
