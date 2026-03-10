@@ -1253,8 +1253,8 @@ document.getElementById('btnRun').addEventListener('click', async () => {
 
   // Show privacy confirmation
   document.getElementById('privTxCount').textContent = txCount.toLocaleString('en-IE');
-  document.getElementById('privRemoved').innerHTML = APP.privacyRemovedItems.join('<br>') || '—';
-  document.getElementById('privKept').innerHTML    = APP.privacyKeptItems.join('<br>') || '—';
+  document.getElementById('privRemoved').innerHTML = APP.privacyRemovedItems.length ? APP.privacyRemovedItems.map(item => escHTML(item)).join('<br>') : '—';
+  document.getElementById('privKept').innerHTML    = APP.privacyKeptItems.length ? APP.privacyKeptItems.map(item => escHTML(item)).join('<br>') : '—';
   showPage('page-privacy');
 });
 
