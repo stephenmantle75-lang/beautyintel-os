@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BeautyIntel OS — Privacy Policy</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:          #06080f;
+  --obsidian:     #0d1018;
+  --paper:        #f4f1ec;
+  --cream:        #f9f7f4;
+  --gold:         #b8965a;
+  --gold-lt:      #cdb07a;
+  --danger:       #b85c5c;
+  --success:      #5a8f6f;
+  --muted:        #7a756e;
+  --border:       rgba(184,150,90,0.15);
+  --font-display: 'Cormorant Garamond', serif;
+  --font-body:    'Jost', 'Helvetica Neue', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--font-body);
+  background: var(--ink);
+  color: var(--paper);
+  line-height: 1.65;
+}
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 60px 24px;
+}
+h1 {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  color: var(--cream);
+}
+h1 em { color: var(--gold); font-style: italic; }
+.subtitle {
+  font-size: 14px;
+  color: rgba(244, 241, 236, 0.5);
+  margin-bottom: 48px;
+  letter-spacing: 0.05em;
+}
+h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 300;
+  margin-top: 48px;
+  margin-bottom: 16px;
+  padding-top: 24px;
+  border-top: 0.5px solid var(--border);
+}
+h2:first-of-type { border-top: none; margin-top: 0; }
+p {
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+strong { color: var(--gold); }
+em { color: var(--muted); }
+ul { margin: 16px 0 16px 24px; }
+li { margin-bottom: 10px; font-size: 14px; }
+.section {
+  margin-bottom: 40px;
+  padding: 20px;
+  background: rgba(244, 241, 236, 0.02);
+  border-left: 2px solid var(--border);
+}
+.highlight {
+  background: rgba(184, 150, 90, 0.08);
+  padding: 16px;
+  border-radius: 2px;
+  margin: 16px 0;
+  font-size: 13px;
+}
+.back-link {
+  display: inline-block;
+  margin-top: 48px;
+  padding: 8px 16px;
+  border: 0.5px solid var(--border);
+  color: var(--gold);
+  text-decoration: none;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+.back-link:hover {
+  border-color: var(--gold);
+  background: rgba(184, 150, 90, 0.08);
+}
+.last-updated {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 60px;
+  padding-top: 24px;
+  border-top: 0.5px solid var(--border);
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Privacy <em>Policy</em></h1>
+<p class="subtitle">Last updated: March 10, 2026 | Effective: Immediately</p>
+
+---
+
+<h2>1. Overview</h2>
+
+<p>BeautyIntel OS ("we," "us," "our," or "the App") is committed to protecting your privacy. This Privacy Policy explains how we handle your data when you use our financial analysis tool.</p>
+
+<p><strong>Core principle:</strong> Your financial data never leaves your device unless you explicitly choose to use AI analysis. When it does, only anonymised information is sent — never raw data.</p>
+
+<div class="highlight">
+<strong>TL;DR:</strong> Upload CSV files → App strips personal details → You see what was removed → Choose to analyze → Only anonymised metrics sent to Claude AI → Session cleared on tab close. No storage. No tracking.
+</div>
+
+---
+
+<h2>2. What Data We Collect</h2>
+
+<h3>Data You Upload</h3>
+<p>When you upload a CSV file (sales data from Fresha, Revolut, AIB, etc.), the file is processed entirely in your browser. The data is never uploaded to our servers.</p>
+
+<h3>Data We Strip (Remove Before Any Analysis)</h3>
+<p>Before any processing, the App automatically removes:</p>
+<ul>
+  <li>Client names, surnames, email addresses</li>
+  <li>Phone numbers and mobile numbers</li>
+  <li>IBANs, account numbers, sort codes, BIC codes</li>
+  <li>Card numbers and payment instrument details</li>
+  <li>Addresses and location identifiers</li>
+  <li>Any column headers flagged as sensitive</li>
+</ul>
+
+<p>You see exactly what was removed on the "Privacy Mode" screen before analysis proceeds. You must confirm removal before continuing.</p>
+
+<h3>Data We Keep (For Analysis Only)</h3>
+<p>The App retains only:</p>
+<ul>
+  <li>Transaction dates</li>
+  <li>Service/product names (generic, no client info)</li>
+  <li>Sales amounts and revenue figures</li>
+  <li>Merchant descriptions (generic: "Tesco", "ESB", etc.)</li>
+  <li>Channel/booking source (e.g., "online", "phone")</li>
+  <li>Staff first names only (if uploaded)</li>
+</ul>
+
+<p>These form the basis of your financial P&L, expense breakdown, and health score.</p>
+
+---
+
+<h2>3. How We Use Your Data</h2>
+
+<h3>Rules-Based Analysis (Free Mode)</h3>
+<p>All processing happens in your browser. No data leaves your device.</p>
+<ul>
+  <li>P&L breakdown (gross → net → profit)</li>
+  <li>Expense categorisation</li>
+  <li>Health score calculation (0–100)</li>
+  <li>Anomaly detection</li>
+  <li>12-month growth projection</li>
+</ul>
+
+<h3>AI-Powered Analysis (Optional, Requires API Key)</h3>
+<p>If you choose to enable AI analysis by providing your Anthropic API key, the App sends:</p>
+<ul>
+  <li><strong>Anonymised financial metrics:</strong> Total revenue, total expenses, health score, top categories</li>
+  <li><strong>Sample transactions (max 75):</strong> Stripped transaction data (dates, amounts, merchant categories — no personal identifiers)</li>
+  <li><strong>No:</strong> Client names, IBANs, email addresses, phone numbers, or raw CSV data</li>
+</ul>
+
+<p>Claude AI generates a written report with:</p>
+<ul>
+  <li>Executive summary of your financial health</li>
+  <li>Risk factors and anomalies</li>
+  <li>90-day action plan</li>
+</ul>
+
+<p>Your API key is used only for this request. It is <strong>never stored</strong> on any server.</p>
+
+---
+
+<h2>4. Data Processing with Anthropic</h2>
+
+<p><strong>Third Party:</strong> When you enable AI analysis, BeautyIntel OS sends anonymised data to Anthropic's Claude API.</p>
+
+<p><strong>Anthropic's Responsibility:</strong></p>
+<ul>
+  <li>Anthropic processes your anonymised data according to their <a href="https://www.anthropic.com/legal/terms-of-service" style="color: var(--gold);">Terms of Service</a> and <a href="https://www.anthropic.com/legal/privacy" style="color: var(--gold);">Privacy Policy</a></li>
+  <li>Anthropic may use data to improve their service (see their privacy policy for details)</li>
+  <li>No PII (names, IBANs, contact details) is sent to Anthropic</li>
+</ul>
+
+<p><strong>Your Responsibility:</strong></p>
+<ul>
+  <li>Your API key is your responsibility. Do not share it or paste it anywhere except this App</li>
+  <li>The API key is stored in your browser's <code>sessionStorage</code> — temporary memory cleared when you close the tab</li>
+  <li>The App does not store, log, or transmit your API key to any server</li>
+</ul>
+
+<p><strong>Data Processing Agreement:</strong> By using AI analysis, you agree that Anthropic may process your anonymised financial data in accordance with their Privacy Policy. For details, see <a href="https://www.anthropic.com/legal/dpa" style="color: var(--gold);">Anthropic's Data Processing Agreement</a>.</p>
+
+---
+
+<h2>5. Data Retention & Storage</h2>
+
+<p><strong>In Your Browser:</strong> Your CSV files and analysis results are stored temporarily in your browser session (while the tab is open). Once you close the tab or refresh the page, all data is cleared.</p>
+
+<p><strong>On Our Servers:</strong> We do not store your CSV files, analysis results, or any personal data on our servers.</p>
+
+<p><strong>On Anthropic's Servers:</strong> Anthropic processes your anonymised data and may retain it according to their <a href="https://www.anthropic.com/legal/privacy" style="color: var(--gold);">Privacy Policy</a> (typically 30 days for log retention).</p>
+
+<p><strong>Exported Reports:</strong> If you export or print your report, you own that document. We recommend storing it securely.</p>
+
+---
+
+<h2>6. Your Rights (GDPR & Data Protection)</h2>
+
+<p>If you are in the EU or subject to GDPR:</p>
+
+<ul>
+  <li><strong>Right of Access:</strong> Since we don't store your data, there's no data file to access. Your data exists only in your browser session.</li>
+  <li><strong>Right to Deletion:</strong> Close the tab. Your data is deleted automatically.</li>
+  <li><strong>Right to Rectification:</strong> Since no data is stored, this doesn't apply. Edit your CSV before re-uploading.</li>
+  <li><strong>Right to Data Portability:</strong> Export your report (PDF) — it's yours.</li>
+  <li><strong>Right to Object:</strong> Disable AI analysis to prevent data transmission to Anthropic.</li>
+</ul>
+
+<p>For questions about how Anthropic processes your data, contact Anthropic directly at <a href="https://www.anthropic.com/contact" style="color: var(--gold);">anthropic.com/contact</a>.</p>
+
+---
+
+<h2>7. Security</h2>
+
+<p><strong>Client-Side Processing:</strong> All data processing happens in your browser using vanilla JavaScript. No framework, no hidden requests.</p>
+
+<p><strong>HTTPS Only:</strong> All connections to Anthropic's API use HTTPS encryption.</p>
+
+<p><strong>No Cookies:</strong> We do not use cookies to track you.</p>
+
+<p><strong>No Analytics:</strong> We do not track your usage or behaviour.</p>
+
+<p><strong>Code Transparency:</strong> The App is a single HTML file (~2,138 lines). You can view the source code directly in your browser (right-click → View Page Source).</p>
+
+---
+
+<h2>8. Third Parties</h2>
+
+<p><strong>Anthropic Claude API:</strong> When you enable AI analysis, your anonymised data is processed by Anthropic. See their <a href="https://www.anthropic.com/legal/privacy" style="color: var(--gold);">Privacy Policy</a>.</p>
+
+<p><strong>Chart.js:</strong> We use Chart.js (a charting library) loaded from a CDN. Chart.js does not collect your data; it only renders charts in your browser.</p>
+
+<p><strong>Google Fonts:</strong> Fonts are loaded from Google Fonts. Google may collect minimal analytics. See <a href="https://policies.google.com/privacy" style="color: var(--gold);">Google's Privacy Policy</a>.</p>
+
+<p><strong>No Other Third Parties:</strong> We do not share your data with marketing platforms, analytics tools, or other third parties.</p>
+
+---
+
+<h2>9. Children's Privacy</h2>
+
+<p>BeautyIntel OS is designed for adults (beauty business owners). We do not knowingly collect data from children under 13. If we become aware of such collection, we will delete it immediately.</p>
+
+---
+
+<h2>10. Changes to This Privacy Policy</h2>
+
+<p>We may update this Privacy Policy periodically. The "Last updated" date at the top reflects the most recent revision. Your continued use of the App constitutes acceptance of the updated policy.</p>
+
+---
+
+<h2>11. Contact & Questions</h2>
+
+<p><strong>Questions about your privacy?</strong></p>
+
+<p>Email: <a href="mailto:hello@clarosi.ie" style="color: var(--gold);">hello@clarosi.ie</a></p>
+
+<p>Or contact via:</p>
+<p style="font-family: var(--font-mono); font-size: 12px;">
+ClaroSi<br>
+Dublin, Ireland<br>
+<a href="https://clarosi.ie" style="color: var(--gold);">clarosi.ie</a>
+</p>
+
+---
+
+<h2>12. Legal Notice & Disclaimer</h2>
+
+<p><strong>This tool provides financial information only and is NOT professional financial, tax, or legal advice.</strong></p>
+
+<p>BeautyIntel OS calculates P&L, categorises spending, and identifies anomalies based on your CSV data. It does not provide:</p>
+<ul>
+  <li>Tax planning or tax advice (consult an Irish accountant or Revenue Commissioners)</li>
+  <li>Financial advice (consult a qualified financial adviser)</li>
+  <li>Legal advice (consult a solicitor or legal professional)</li>
+  <li>Insurance recommendations</li>
+</ul>
+
+<p><strong>Use at Your Own Risk:</strong> While we take care to ensure accuracy, we make no guarantees. Errors in CSV data, merchant classification, or AI interpretation may occur. Review all output independently before making financial decisions.</p>
+
+<p><strong>Ireland-Specific Note:</strong> If you are a sole trader, use this tool alongside professional accountancy. Revenue Commissioners may require certified accounts prepared by a qualified accountant. This tool does not replace that requirement.</p>
+
+<div class="highlight">
+<strong>Always consult a qualified professional before making financial or tax decisions based on this tool's output.</strong>
+</div>
+
+---
+
+<p class="last-updated">
+Last Updated: March 10, 2026<br>
+Applies to: BeautyIntel OS v0.9+
+</p>
+
+<a href="/" class="back-link">← Back to BeautyIntel OS</a>
+
+</div>
+</body>
+</html>
