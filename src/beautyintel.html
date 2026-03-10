@@ -610,6 +610,9 @@ input[type="file"]{display:none;}
     <!-- Privacy note -->
     <p class="privacy-note">Private identifiers are automatically removed before anything is analysed</p>
 
+    <!-- Demo button -->
+    <button class="btn-run" id="btnDemo" style="background:rgba(122,158,122,0.2);border-color:var(--sage);color:var(--sage);margin-bottom:12px;">↻ Try Demo with Sample Data</button>
+
     <!-- Run button -->
     <button class="btn-run" id="btnRun">Continue to Privacy Review →</button>
   </div>
@@ -1261,6 +1264,39 @@ document.getElementById('btnRun').addEventListener('click', async () => {
   document.getElementById('privRemoved').innerHTML = APP.privacyRemovedItems.length ? APP.privacyRemovedItems.map(item => escHTML(item)).join('<br>') : '—';
   document.getElementById('privKept').innerHTML    = APP.privacyKeptItems.length ? APP.privacyKeptItems.map(item => escHTML(item)).join('<br>') : '—';
   showPage('page-privacy');
+});
+
+// ═══════════════════════════════════════════════════════
+// DEMO MODE — Load sample data
+// ═══════════════════════════════════════════════════════
+document.getElementById('btnDemo').addEventListener('click', async () => {
+  try {
+    // Load sample sales CSV
+    const salesRes = await fetch('https://raw.githubusercontent.com/stephenmantle75-lang/beautyintel-os/main/samples/sample-sales.csv');
+    const salesCsv = await salesRes.text();
+
+    // Load sample spend CSV
+    const spendRes = await fetch('https://raw.githubusercontent.com/stephenmantle75-lang/beautyintel-os/main/samples/sample-spend.csv');
+    const spendCsv = await spendRes.text();
+
+    // Parse and set sample data
+    APP.salesRaw = salesCsv;
+    APP.spendRaw = spendCsv;
+
+    // Update UI to show files are loaded
+    document.getElementById('salesFileName').textContent = 'sample-sales.csv (demo)';
+    document.getElementById('spendFileName').textContent = 'sample-spend.csv (demo)';
+    document.getElementById('salesQueued').style.display = 'flex';
+    document.getElementById('spendQueued').style.display = 'flex';
+    document.getElementById('salesQueuedName').textContent = 'Sample Data - Beauty Professional (Jan-Feb 2024)';
+    document.getElementById('spendQueuedName').textContent = 'Sample Expenses - No real data included';
+
+    // Trigger the analysis
+    document.getElementById('btnRun').click();
+  } catch (err) {
+    console.error('Demo load failed:', err);
+    alert('Could not load demo data. Please upload your own CSV files.');
+  }
 });
 
 // ═══════════════════════════════════════════════════════
