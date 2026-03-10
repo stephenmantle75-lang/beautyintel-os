@@ -1,5 +1,6 @@
-name            = "beautyintel-proxy"
-main            = "worker.js"
+name = "beautyintel-proxy"
+type = "service"
+main = "worker.js"
 compatibility_date = "2024-01-01"
 
 # ANTHROPIC_API_KEY is a secret — never put the value here.
