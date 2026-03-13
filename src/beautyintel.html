@@ -204,6 +204,24 @@ input[type="file"]{display:none;}
   margin-bottom:28px;padding:16px;background:rgba(184,150,90,0.04);
   border-left:0.5px solid rgba(184,150,90,0.25);
 }
+
+/* ── Responsible AI Governance ── */
+.privacy-governance{
+  margin-bottom:28px;padding:20px;background:rgba(90,143,111,0.06);
+  border:0.5px solid rgba(90,143,111,0.2);border-radius:2px;
+}
+.privacy-governance h3{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.35em;
+  color:var(--success);text-transform:uppercase;margin-bottom:14px;
+}
+.privacy-protection{
+  font-size:12px;color:rgba(244,241,236,0.6);line-height:1.8;margin-bottom:8px;
+  display:flex;gap:8px;align-items:flex-start;
+}
+.privacy-protection::before{
+  content:'✓';color:var(--success);flex-shrink:0;margin-top:1px;
+}
+
 .btn-run-analysis{
   width:100%;background:transparent;color:var(--gold);border:0.5px solid var(--gold);
   padding:18px;font-family:var(--font-body);font-size:11px;
@@ -639,6 +657,17 @@ input[type="file"]{display:none;}
       <div class="privacy-pledge">
         BeautyIntel OS never sees your personal details. Ever. Only your spending patterns and service performance are used in the analysis.
       </div>
+
+      <!-- Responsible AI Governance Layer -->
+      <div class="privacy-governance">
+        <h3>Responsible AI Practices</h3>
+        <div class="privacy-protection">PII stripping removes all personal identifiers before any analysis</div>
+        <div class="privacy-protection">No raw data transmission — only anonymised metrics sent to Claude</div>
+        <div class="privacy-protection">Financial categorisation uses rule-based logic, not model judgment</div>
+        <div class="privacy-protection">Data minimisation: up to 75 transactions, never complete history</div>
+        <div class="privacy-protection">Complete transparency — you see exactly what we're sending</div>
+      </div>
+
       <button class="btn-run-analysis" id="btnRunAnalysis">Run Financial Autopsy →</button>
       <br>
       <button class="btn-back-upload" onclick="showPage('page-upload')">← Back to upload</button>
