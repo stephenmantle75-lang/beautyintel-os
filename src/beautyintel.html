@@ -162,8 +162,6 @@ input[type="file"]{display:none;}
 .btn-run.visible{display:block;}
 .btn-run:hover{background:var(--gold);color:var(--ink);}
 
-/* (api-row / api-input / api-badge removed — key handled server-side by Cloudflare Worker) */
-
 /* ═══════════════════════════════════════
    PRIVACY CONFIRMATION SCREEN
 ═══════════════════════════════════════ */
@@ -805,15 +803,8 @@ function showPage(id) {
   window.scrollTo(0,0);
 }
 
-// ═══════════════════════════════════════════════════════
-// API KEY MANAGEMENT
-// Stores API key in sessionStorage only (never persisted)
-// ═══════════════════════════════════════════════════════
-function getAPIKey() { return sessionStorage.getItem('BI_API_KEY'); }
-function setAPIKey(key) {
-  if (key) sessionStorage.setItem('BI_API_KEY', key);
-  else sessionStorage.removeItem('BI_API_KEY');
-}
+// API key is handled server-side by Cloudflare Worker (env.ANTHROPIC_API_KEY)
+// Client never stores or manages the API key
 
 // ═══════════════════════════════════════════════════════
 // DRAG & DROP + FILE SELECTION

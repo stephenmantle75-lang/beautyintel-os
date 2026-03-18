@@ -49,13 +49,17 @@ npx serve src -p 3000
 
 ### Enable AI mode
 
-The app works without an API key (rules-based analysis). To enable the AI-powered narrative:
+The app works without an API key (rules-based analysis). To enable the AI-powered narrative, deploy the Cloudflare Worker with your Anthropic API key set as an environment secret:
 
-1. Get an API key from [console.anthropic.com](https://console.anthropic.com)
-2. Paste it into the API key field on the upload screen
-3. The key is stored only in `sessionStorage` — it's cleared when you close the tab
+```bash
+cd worker/
+wrangler secret put ANTHROPIC_API_KEY
+wrangler deploy
+```
 
-> **Note:** The API key is currently sent directly from the browser. This is suitable for personal/demo use. For a production deployment, route API calls through a server-side proxy.
+The API key is never exposed to the browser — all API calls are proxied through the Cloudflare Worker. This ensures credentials are kept secure and rate limiting is enforced server-side.
+
+See `worker/README.md` for full Worker setup and deployment instructions.
 
 ### Supported CSV formats
 
